@@ -1,0 +1,2311 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>LINK-VERSE | สมรภูมิเชื่อมโยงจักรวาลความรู้ (วิทยาศาสตร์ ม.ต้น)</title>
+
+  <!-- Google Fonts: Prompt & Sarabun -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&family=Sarabun:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            prompt: ['"Prompt"', 'sans-serif'],
+            sarabun: ['"Sarabun"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#4f46e5',
+              600: '#4338ca',
+              700: '#3730a3',
+              900: '#1e1b4b',
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    /* Base Typography */
+    body {
+      font-family: 'Sarabun', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+
+    h1, h2, h3, h4, .font-heading {
+      font-family: 'Prompt', sans-serif;
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* Interactive Hex Board SVG Animations & Hover */
+    .hex-polygon {
+      transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .hex-polygon:hover {
+      filter: brightness(0.96);
+      stroke-width: 3.2;
+    }
+
+    .link-node-group {
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+    .link-node-group:hover .link-node-circle {
+      transform: scale(1.18);
+      fill: #4f46e5;
+    }
+    .link-node-circle {
+      transform-box: fill-box;
+      transform-origin: center;
+      transition: all 0.2s ease;
+    }
+
+    /* Card Hover Elevation */
+    .game-card {
+      transition: transform 0.22s ease, box-shadow 0.22s ease;
+    }
+    .game-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 12px 24px -8px rgba(15, 23, 42, 0.15);
+    }
+
+    /* A4 Print Preview Styling on Screen */
+    .a4-sheet {
+      width: 210mm;
+      min-height: 297mm;
+      background: #ffffff;
+      margin: 0 auto 24px auto;
+      padding: 12mm 14mm;
+      box-shadow: 0 10px 30px rgba(15, 23, 42, 0.12);
+      border-radius: 6px;
+      position: relative;
+      box-sizing: border-box;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    /* Print Cut Lines Grid (3x3 Cards per A4) */
+    .print-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0;
+      border-top: 1px dashed #94a3b8;
+      border-left: 1px dashed #94a3b8;
+    }
+
+    .print-card-slot {
+      border-right: 1px dashed #94a3b8;
+      border-bottom: 1px dashed #94a3b8;
+      padding: 4mm;
+      height: 82mm;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      box-sizing: border-box;
+    }
+
+    /* Ink-Saver Mode Overrides */
+    .ink-saver .print-card-inner {
+      background: #ffffff !important;
+      color: #0f172a !important;
+      border-width: 2px !important;
+    }
+    .ink-saver .print-card-header {
+      background: #ffffff !important;
+      color: #0f172a !important;
+      border-bottom: 1.5px solid currentColor !important;
+    }
+    .ink-saver .print-badge {
+      background: #ffffff !important;
+      border: 1px solid #64748b !important;
+      color: #1e293b !important;
+    }
+    .ink-saver .print-card-back {
+      background: #ffffff !important;
+      color: #1e293b !important;
+      border: 2.5px solid #334155 !important;
+    }
+
+    /* Responsive Scaling for A4 Preview on Mobile/Tablet Screens */
+    @media screen and (max-width: 840px) {
+      .a4-preview-wrapper {
+        overflow-x: auto;
+        padding-bottom: 12px;
+      }
+    }
+
+    /* TRUE A4 PRINT MEDIA RULES */
+    @media print {
+      @page {
+        size: A4 portrait;
+        margin: 0;
+      }
+      body {
+        background: #ffffff !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      #print-studio-section {
+        display: block !important;
+        padding: 0 !important;
+        margin: 0 !important;
+      }
+      .a4-preview-wrapper {
+        overflow: visible !important;
+        padding: 0 !important;
+      }
+      .a4-sheet {
+        width: 210mm !important;
+        height: 297mm !important;
+        min-height: 297mm !important;
+        margin: 0 !important;
+        padding: 11mm 13mm !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-after: always !important;
+        break-after: page !important;
+      }
+      .a4-sheet:last-child {
+        page-break-after: auto !important;
+        break-after: auto !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Toast Notification Banner (No alert() used) -->
+  <div id="toast-container" class="no-print fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Top Navigation Header -->
+  <header class="no-print bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex flex-col md:flex-row md:items-center md:justify-between py-3.5 gap-3">
+        <!-- Brand Logo & Title -->
+        <div class="flex items-center gap-3">
+          <div class="w-11 h-11 rounded-2xl bg-gradient-to-br from-indigo-600 via-violet-600 to-amber-500 flex items-center justify-center text-white shadow-md shrink-0">
+            <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <polygon points="12 2 21 7 21 17 12 22 3 17 3 7 12 2"></polygon>
+              <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+              <line x1="12" y1="2" x2="12" y2="9"></line>
+              <line x1="21" y1="17" x2="14.6" y2="13.5"></line>
+              <line x1="3" y1="17" x2="9.4" y2="13.5"></line>
+            </svg>
+          </div>
+          <div>
+            <div class="flex items-center gap-2 flex-wrap">
+              <h1 class="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">LINK-VERSE</h1>
+              <span class="px-2.5 py-0.5 text-xs font-heading font-semibold rounded-full bg-indigo-50 text-indigo-700 border border-indigo-200">วิทยาศาสตร์ ม.ต้น</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-500">สมรภูมิเชื่อมโยงจักรวาลความรู้ • สื่อนวัตกรรมบอร์ดเกมเชิงระบบ</p>
+          </div>
+        </div>
+
+        <!-- 4 Main Navigation Tabs -->
+        <nav class="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0" aria-label="เมนูหลัก">
+          <button onclick="switchTab('board')" id="tab-btn-board" class="tab-btn active-tab flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-heading font-medium whitespace-nowrap transition-all bg-indigo-600 text-white shadow-sm">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="12 2 21 7 21 17 12 22 3 17 3 7 12 2"/></svg>
+            <span>1. กระดานรังผึ้งจำลอง</span>
+          </button>
+
+          <button onclick="switchTab('concepts')" id="tab-btn-concepts" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-heading font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="9" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+            <span>2. คลังการ์ดมโนทัศน์</span>
+          </button>
+
+          <button onclick="switchTab('links')" id="tab-btn-links" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-heading font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+            <span>3. การ์ดเชื่อมโยง & แอ็กชัน</span>
+          </button>
+
+          <button onclick="switchTab('print')" id="tab-btn-print" class="tab-btn flex items-center gap-1.5 px-3.5 py-2.5 rounded-xl text-xs sm:text-sm font-heading font-medium whitespace-nowrap transition-all bg-slate-100 text-slate-600 hover:bg-slate-200">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>4. จัดหน้าพิมพ์ A4</span>
+          </button>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+    <!-- =================================================================== -->
+    <!-- TAB 1: INTERACTIVE HEX BOARD (กระดานรังผึ้งจำลอง)                 -->
+    <!-- =================================================================== -->
+    <section id="section-board" class="tab-section space-y-5">
+      <!-- Top Control & Score Bar -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-4 shadow-sm flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="flex items-center gap-2.5 bg-indigo-50 border border-indigo-100 px-4 py-2 rounded-xl">
+            <span class="text-xs font-heading font-semibold text-indigo-700 uppercase">คะแนนรวมโครงข่าย</span>
+            <span id="board-total-score" class="text-2xl font-heading font-bold text-indigo-900">0</span>
+            <span class="text-xs text-indigo-600">คะแนน</span>
+          </div>
+          <div class="flex items-center gap-2 text-xs sm:text-sm text-slate-600 bg-slate-50 px-3.5 py-2 rounded-xl border border-slate-200">
+            <span>การ์ดบนกระดาน: <strong id="board-placed-count" class="text-slate-900">1</strong>/19</span>
+            <span class="text-slate-300">|</span>
+            <span>เส้นเชื่อมโยง: <strong id="board-link-count" class="text-emerald-600">0</strong> เส้น</span>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2.5">
+          <button onclick="loadDemoBoard()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-heading text-xs sm:text-sm font-medium shadow-sm transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            <span>โหลดตัวอย่างการเล่น (Demo Board)</span>
+          </button>
+          <button onclick="resetBoard()" class="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-heading text-xs sm:text-sm font-medium border border-slate-200 transition-all">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+            <span>ล้างกระดาน (Reset)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Board & Side Deck Layout -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        <!-- Left/Center: 19-Cell Interactive Hex Board -->
+        <div class="lg:col-span-8 bg-white rounded-2xl border border-slate-200 p-4 sm:p-6 shadow-sm flex flex-col items-center">
+          <div class="w-full flex flex-wrap items-center justify-between gap-2 mb-3 pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-base sm:text-lg font-bold text-slate-900">กระดานรังผึ้ง 19 ช่อง (จัดเรียง 3-4-5-4-3)</h2>
+              <p class="text-xs sm:text-sm text-slate-500">คลิกช่องว่างเพื่อวางการ์ดมโนทัศน์ • คลิกปุ่ม <span class="inline-flex items-center justify-center w-4 h-4 rounded-full bg-indigo-600 text-white text-[10px] font-bold">+</span> ระหว่างการ์ด 2 ใบเพื่อสร้างจุดเชื่อมโยง</p>
+            </div>
+            <!-- Legend -->
+            <div class="flex items-center gap-3 text-xs">
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-amber-400 inline-block"></span> จุดศูนย์กลาง</span>
+              <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-full bg-rose-500 inline-block"></span> ช่องโบนัส x2</span>
+            </div>
+          </div>
+
+          <!-- Responsive SVG Hex Container -->
+          <div class="w-full max-w-[660px] mx-auto my-1 select-none">
+            <svg id="interactive-hex-svg" viewBox="0 0 700 620" class="w-full h-auto drop-shadow-sm">
+              <!-- Defs for gradients and filters -->
+              <defs>
+                <filter id="cardShadow" x="-10%" y="-10%" width="120%" height="120%">
+                  <feDropShadow dx="0" dy="2" stdDeviation="2.5" flood-color="#0f172a" flood-opacity="0.12" />
+                </filter>
+              </defs>
+              <g id="hex-cells-layer"></g>
+              <g id="hex-links-layer"></g>
+              <g id="hex-nodes-layer"></g>
+            </svg>
+          </div>
+
+          <!-- Active Connections Log below board -->
+          <div class="w-full mt-4 pt-4 border-t border-slate-100">
+            <h3 class="text-sm font-bold text-slate-800 mb-2.5 flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+              <span>บันทึกการเชื่อมโยงและเหตุผลทางวิทยาศาสตร์บนกระดาน (<span id="log-count">0</span>)</span>
+            </h3>
+            <div id="board-connections-list" class="space-y-2 max-h-60 overflow-y-auto pr-1">
+              <div class="text-xs sm:text-sm text-slate-400 bg-slate-50 rounded-xl p-4 text-center border border-dashed border-slate-200">
+                ยังไม่มีเส้นเชื่อมโยงบนกระดาน ลองวางการ์ดมโนทัศน์ติดกับ "ดวงอาทิตย์" แล้วกดปุ่ม (+) หรือกดปุ่ม <strong>"โหลดตัวอย่างการเล่น (Demo Board)"</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Side Deck Selector -->
+        <div class="lg:col-span-4 bg-white rounded-2xl border border-slate-200 p-4 sm:p-5 shadow-sm space-y-4">
+          <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">กองการ์ดมโนทัศน์ในมือ</h3>
+              <p class="text-xs text-slate-500">เลือกการ์ดด้านล่าง หรือคลิกที่ช่องว่างบนกระดาน</p>
+            </div>
+            <span id="selected-deck-indicator" class="hidden px-2.5 py-1 rounded-lg bg-indigo-100 text-indigo-700 text-xs font-heading font-semibold">กำลังเลือกการ์ด</span>
+          </div>
+
+          <!-- Filter pills in side deck -->
+          <div class="flex flex-wrap gap-1.5" id="board-deck-filters">
+            <button onclick="filterBoardDeck('all')" class="deck-filter-btn px-2.5 py-1 rounded-lg text-xs font-heading font-medium bg-slate-800 text-white" data-cat="all">ทั้งหมด</button>
+            <button onclick="filterBoardDeck('biology')" class="deck-filter-btn px-2.5 py-1 rounded-lg text-xs font-heading font-medium bg-emerald-50 text-emerald-700 hover:bg-emerald-100" data-cat="biology">ชีววิทยา</button>
+            <button onclick="filterBoardDeck('chemistry')" class="deck-filter-btn px-2.5 py-1 rounded-lg text-xs font-heading font-medium bg-sky-50 text-sky-700 hover:bg-sky-100" data-cat="chemistry">เคมี</button>
+            <button onclick="filterBoardDeck('physics')" class="deck-filter-btn px-2.5 py-1 rounded-lg text-xs font-heading font-medium bg-orange-50 text-orange-700 hover:bg-orange-100" data-cat="physics">ฟิสิกส์</button>
+            <button onclick="filterBoardDeck('earth')" class="deck-filter-btn px-2.5 py-1 rounded-lg text-xs font-heading font-medium bg-purple-50 text-purple-700 hover:bg-purple-100" data-cat="earth">โลกและอวกาศ</button>
+          </div>
+
+          <!-- Scrollable List of Cards -->
+          <div id="board-side-deck" class="space-y-2 max-h-[520px] overflow-y-auto pr-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 2: CONCEPT CARDS LIBRARY (คลังการ์ดมโนทัศน์)                    -->
+    <!-- =================================================================== -->
+    <section id="section-concepts" class="tab-section hidden space-y-6">
+      <!-- Header & Action Bar -->
+      <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">คลังการ์ดมโนทัศน์ (Concept Cards)</h2>
+          <p class="text-sm text-slate-500 mt-0.5">คลิกที่การ์ดแต่ละใบเพื่อดูคำอธิบายเชิงลึก แนวทางการให้เหตุผล และคู่การ์ดแนะนำ • สามารถสร้างการ์ดเพิ่มได้</p>
+        </div>
+        <button onclick="openCreateCardModal()" class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-heading text-sm font-medium shadow-sm transition-all shrink-0">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          <span>+ สร้างการ์ดมโนทัศน์เพิ่มเอง</span>
+        </button>
+      </div>
+
+      <!-- Category Filter Tabs -->
+      <div class="flex flex-wrap items-center gap-2" id="concept-category-filters">
+        <button onclick="filterConceptLibrary('all')" class="concept-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium bg-slate-900 text-white shadow-sm" data-cat="all">ทั้งหมด (<span id="count-all">16</span>)</button>
+        <button onclick="filterConceptLibrary('core')" class="concept-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium bg-white text-amber-700 border border-amber-200 hover:bg-amber-50" data-cat="core">จุดศูนย์กลาง (สีทอง)</button>
+        <button onclick="filterConceptLibrary('biology')" class="concept-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium bg-white text-emerald-700 border border-emerald-200 hover:bg-emerald-50" data-cat="biology">ชีววิทยา (สีเขียว)</button>
+        <button onclick="filterConceptLibrary('chemistry')" class="concept-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium bg-white text-sky-700 border border-sky-200 hover:bg-sky-50" data-cat="chemistry">เคมี (สีฟ้า)</button>
+        <button onclick="filterConceptLibrary('physics')" class="concept-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium bg-white text-orange-700 border border-orange-200 hover:bg-orange-50" data-cat="physics">ฟิสิกส์ (สีส้ม)</button>
+        <button onclick="filterConceptLibrary('earth')" class="concept-filter-btn px-4 py-2 rounded-xl text-xs sm:text-sm font-heading font-medium bg-white text-purple-700 border border-purple-200 hover:bg-purple-50" data-cat="earth">โลกและอวกาศ (สีม่วง)</button>
+      </div>
+
+      <!-- Concept Cards Grid -->
+      <div id="concept-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <!-- Populated dynamically -->
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 3: LINK & ACTION CARDS (การ์ดเชื่อมโยง & การ์ดแอ็กชัน)         -->
+    <!-- =================================================================== -->
+    <section id="section-links" class="tab-section hidden space-y-8">
+      <!-- Part A: 6 Link Cards -->
+      <div class="space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-indigo-100 text-indigo-700 flex items-center justify-center font-heading font-bold">6</span>
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">การ์ดเชื่อมโยง (Link Cards)</h2>
+              <p class="text-sm text-slate-500">ใช้วางคั่นระหว่างการ์ดมโนทัศน์ 2 ใบที่อยู่ติดกัน • คลิกที่การ์ดเพื่อดูตัวอย่างประโยคการให้เหตุผลทางวิทยาศาสตร์</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="link-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+
+      <!-- Part B: 4 Action Cards -->
+      <div class="space-y-4">
+        <div class="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm">
+          <div class="flex items-center gap-2.5">
+            <span class="w-8 h-8 rounded-xl bg-rose-100 text-rose-700 flex items-center justify-center font-heading font-bold">4</span>
+            <div>
+              <h2 class="text-xl font-bold text-slate-900">การ์ดแอ็กชันพิเศษ (Action Cards)</h2>
+              <p class="text-sm text-slate-500">การ์ดกลยุทธ์สำหรับพลิกเกม ตรวจสอบความถูกต้อง (Peer Review) และกระตุ้นการอภิปรายในชั้นเรียน</p>
+            </div>
+          </div>
+        </div>
+
+        <div id="action-cards-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <!-- Populated dynamically -->
+        </div>
+      </div>
+    </section>
+
+    <!-- =================================================================== -->
+    <!-- TAB 4: PRINT STUDIO A4 (จัดหน้าสำหรับพิมพ์ A4)                     -->
+    <!-- =================================================================== -->
+    <section id="section-print" class="tab-section hidden space-y-6">
+      <!-- Print Controls Toolbar (Hidden during actual print) -->
+      <div class="no-print bg-white rounded-2xl border border-slate-200 p-5 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+        <div>
+          <h2 class="text-xl font-bold text-slate-900">สตูดิโอจัดหน้าพิมพ์ลงกระดาษ A4 (Print Studio)</h2>
+          <p class="text-sm text-slate-500 mt-0.5">จัดหน้ามาตรฐาน A4 แยกแผ่นชัดเจน พร้อมเส้นประสำหรับตัดการ์ด (<span id="print-page-count-badge" class="font-semibold text-indigo-600">4 แผ่น A4</span>)</p>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-4">
+          <!-- Ink-Saver Mode Toggle -->
+          <label class="flex items-center gap-3 cursor-pointer bg-slate-50 border border-slate-200 px-4 py-2.5 rounded-xl select-none">
+            <div class="relative">
+              <input type="checkbox" id="ink-saver-toggle" class="sr-only peer" onchange="toggleInkSaverMode(this.checked)" />
+              <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-600"></div>
+            </div>
+            <div>
+              <span class="text-xs sm:text-sm font-heading font-semibold text-slate-800 block">โหมดประหยัดหมึก (Ink-Saver)</span>
+              <span class="text-[11px] text-slate-500 block">พื้นขาว ขอบสี พิมพ์คมชัดประหยัดหมึก</span>
+            </div>
+          </label>
+
+          <!-- Print Button -->
+          <button onclick="window.print()" class="flex items-center gap-2 px-5 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-heading text-sm font-semibold shadow-md transition-all">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            <span>สั่งพิมพ์ / บันทึกเป็น PDF (Print)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- A4 Sheets Container -->
+      <div id="print-studio-section" class="a4-preview-wrapper">
+        <div id="a4-pages-container">
+          <!-- Dynamically generated A4 Sheets (Sheet 1: Hex Board, Sheet 2-3: Concept Cards 3x3, Sheet 4+: Link/Action & Card Backs) -->
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ===================================================================== -->
+  <!-- MODALS (Card Detail, Place Card on Hex, Create Link, Create Card)     -->
+  <!-- ===================================================================== -->
+  <div id="modal-backdrop" class="no-print fixed inset-0 bg-slate-900/50 backdrop-blur-xs z-40 hidden items-center justify-center p-4" onclick="closeModalOnBackdrop(event)">
+    <div id="modal-box" class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden transform transition-all">
+      <!-- Dynamic modal content injected here -->
+    </div>
+  </div>
+
+  <!-- ===================================================================== -->
+  <!-- APPLICATION JAVASCRIPT                                                -->
+  <!-- ===================================================================== -->
+  <script>
+    /* ---------------------------------------------------------------------
+       1. DATA DEFINITIONS (16 Concept Cards, 6 Link Cards, 4 Action Cards)
+       --------------------------------------------------------------------- */
+    const CATEGORY_META = {
+      core: {
+        label: 'จุดศูนย์กลาง (Core Concept)',
+        shortLabel: 'จุดศูนย์กลาง',
+        bgLight: 'bg-amber-50',
+        border: 'border-amber-400',
+        badgeBg: 'bg-amber-100 text-amber-800 border-amber-300',
+        headerGrad: 'from-amber-500 to-yellow-500',
+        hexFill: '#fef3c7',
+        hexStroke: '#f59e0b',
+        textDark: 'text-amber-900',
+        accentHex: '#d97706'
+      },
+      biology: {
+        label: 'ชีววิทยา (Biology)',
+        shortLabel: 'ชีววิทยา',
+        bgLight: 'bg-emerald-50',
+        border: 'border-emerald-400',
+        badgeBg: 'bg-emerald-100 text-emerald-800 border-emerald-300',
+        headerGrad: 'from-emerald-600 to-teal-500',
+        hexFill: '#d1fae5',
+        hexStroke: '#10b981',
+        textDark: 'text-emerald-900',
+        accentHex: '#059669'
+      },
+      chemistry: {
+        label: 'เคมี (Chemistry)',
+        shortLabel: 'เคมี',
+        bgLight: 'bg-sky-50',
+        border: 'border-sky-400',
+        badgeBg: 'bg-sky-100 text-sky-800 border-sky-300',
+        headerGrad: 'from-sky-600 to-blue-500',
+        hexFill: '#e0f2fe',
+        hexStroke: '#0284c7',
+        textDark: 'text-sky-900',
+        accentHex: '#0284c7'
+      },
+      physics: {
+        label: 'ฟิสิกส์ (Physics)',
+        shortLabel: 'ฟิสิกส์',
+        bgLight: 'bg-orange-50',
+        border: 'border-orange-400',
+        badgeBg: 'bg-orange-100 text-orange-800 border-orange-300',
+        headerGrad: 'from-orange-500 to-amber-600',
+        hexFill: '#ffedd5',
+        hexStroke: '#ea580c',
+        textDark: 'text-orange-900',
+        accentHex: '#ea580c'
+      },
+      earth: {
+        label: 'โลกและอวกาศ (Earth & Space)',
+        shortLabel: 'โลกและอวกาศ',
+        bgLight: 'bg-purple-50',
+        border: 'border-purple-400',
+        badgeBg: 'bg-purple-100 text-purple-800 border-purple-300',
+        headerGrad: 'from-purple-600 to-indigo-600',
+        hexFill: '#f3e8ff',
+        hexStroke: '#9333ea',
+        textDark: 'text-purple-900',
+        accentHex: '#7e22ce'
+      }
+    };
+
+    // Custom Crisp Inline SVG Icons
+    const ICONS = {
+      sun: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><circle cx="12" cy="12" r="4" fill="currentColor" fill-opacity="0.2"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>`,
+      plant: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M12 22v-9"/><path d="M12 13C12 8 17 5 21 5c0 4-3 8-9 8z" fill="currentColor" fill-opacity="0.18"/><path d="M12 16C12 12 7 9 3 9c0 4 3 7 9 7z" fill="currentColor" fill-opacity="0.18"/></svg>`,
+      herbivore: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M9 3c-1.5 0-2.5 2-2 5 1 4 3 5 3 5"/><path d="M15 3c1.5 0 2.5 2 2 5-1 4-3 5-3 5"/><circle cx="12" cy="15" r="5" fill="currentColor" fill-opacity="0.15"/><circle cx="10.5" cy="14" r="0.8" fill="currentColor"/><circle cx="13.5" cy="14" r="0.8" fill="currentColor"/><path d="M11 17h2"/></svg>`,
+      decomposer: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M4 13a8 8 0 0 1 16 0H4z" fill="currentColor" fill-opacity="0.2"/><path d="M10 13v6a2 2 0 0 0 4 0v-6"/><circle cx="9" cy="9" r="1" fill="currentColor"/><circle cx="14" cy="8" r="1" fill="currentColor"/></svg>`,
+      respiration: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><ellipse cx="12" cy="12" rx="9" ry="5.5" transform="rotate(-20 12 12)" fill="currentColor" fill-opacity="0.15"/><path d="M6 13c2-2 3 2 5 0s3 2 5 0 2-2 3-1"/></svg>`,
+      co2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><circle cx="12" cy="12" r="4" fill="currentColor" fill-opacity="0.25"/><circle cx="5" cy="12" r="2.8"/><circle cx="19" cy="12" r="2.8"/><line x1="7.8" y1="11" x2="8.5" y2="11"/><line x1="15.5" y1="11" x2="16.2" y2="11"/></svg>`,
+      o2: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><circle cx="8.5" cy="12" r="4.2" fill="currentColor" fill-opacity="0.2"/><circle cx="15.5" cy="12" r="4.2" fill="currentColor" fill-opacity="0.2"/><line x1="11" y1="10.5" x2="13" y2="10.5"/><line x1="11" y1="13.5" x2="13" y2="13.5"/></svg>`,
+      glucose: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><polygon points="12 3 20 7.5 20 16.5 12 21 4 16.5 4 7.5 12 3" fill="currentColor" fill-opacity="0.15"/><circle cx="12" cy="3" r="1.5" fill="currentColor"/><circle cx="20" cy="7.5" r="1.5" fill="currentColor"/><circle cx="20" cy="16.5" r="1.5" fill="currentColor"/><circle cx="12" cy="21" r="1.5" fill="currentColor"/><circle cx="4" cy="16.5" r="1.5" fill="currentColor"/><circle cx="4" cy="7.5" r="1.5" fill="currentColor"/></svg>`,
+      fossil: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M12 2c2.5 3.5 5 6 5 9.5a5 5 0 0 1-10 0C7 8 9.5 5.5 12 2z" fill="currentColor" fill-opacity="0.2"/><path d="M5 20h14"/><path d="M7 17h10"/></svg>`,
+      lightEnergy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M2 12c2-3 4 3 6 0s4 3 6 0 4 3 6 0"/><path d="M18 8l4 4-4 4"/></svg>`,
+      chemEnergy: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><rect x="6" y="6" width="12" height="14" rx="2" fill="currentColor" fill-opacity="0.15"/><path d="M10 3h4v3h-4z"/><path d="M13 10l-3 4h4l-2 4"/></svg>`,
+      conservation: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M3 12a9 9 0 0 1 15-6.7L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-15 6.7L3 16"/><path d="M3 21v-5h5"/></svg>`,
+      heat: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M8 3c-2 3 2 5 0 8s2 5 0 8"/><path d="M12 3c-2 3 2 5 0 8s2 5 0 8"/><path d="M16 3c-2 3 2 5 0 8s2 5 0 8"/></svg>`,
+      waterCycle: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M12 3s6 6.5 6 11a6 6 0 0 1-12 0c0-4.5 6-11 6-11z" fill="currentColor" fill-opacity="0.2"/><path d="M9.5 14.5a2.5 2.5 0 0 0 2.5 2.5"/></svg>`,
+      greenhouse: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><circle cx="12" cy="14" r="5" fill="currentColor" fill-opacity="0.2"/><path d="M4 14a8 8 0 0 1 16 0" stroke-dasharray="3 2"/><path d="M12 3v4M9 5l3 2 3-2"/></svg>`,
+      climate: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z" fill="currentColor" fill-opacity="0.2"/><circle cx="11.5" cy="17.5" r="1.5" fill="currentColor"/></svg>`,
+      custom: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-full h-full"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" fill="currentColor" fill-opacity="0.2"/></svg>`
+    };
+
+    // Initial 16 Concept Cards
+    let conceptCards = [
+      {
+        id: 'sun',
+        title: 'ดวงอาทิตย์ (The Sun)',
+        category: 'core',
+        icon: 'sun',
+        keywords: ['แหล่งพลังงานหลักของโลก', 'รังสีคลื่นแม่เหล็กไฟฟ้า', 'ความร้อนและแสง'],
+        detail: 'แหล่งกำเนิดพลังงานเริ่มต้นที่สำคัญที่สุดของระบบนิเวศและบรรยากาศโลก แผ่รังสีคลื่นแม่เหล็กไฟฟ้าทั้งพลังงานแสงและพลังงานความร้อนมายังพื้นผิวโลก',
+        reasoningTip: 'ใช้เป็นจุดเริ่มต้นในการถ่ายทอดพลังงานแสงไปยังพืชสีเขียว หรือส่งพลังงานความร้อนเพื่อขับเคลื่อนวัฏจักรน้ำ',
+        recommendedPairs: ['พลังงานแสง', 'พืชสีเขียว (ผู้ผลิต)', 'วัฏจักรน้ำ']
+      },
+      {
+        id: 'green_plant',
+        title: 'พืชสีเขียว (ผู้ผลิต)',
+        category: 'biology',
+        icon: 'plant',
+        keywords: ['คลอโรฟิลล์', 'การสังเคราะห์ด้วยแสง', 'ผู้สร้างอาหาร'],
+        detail: 'สิ่งมีชีวิตที่สามารถสร้างอาหารเองได้โดยใช้คลอโรฟิลล์ดูดซับพลังงานแสง เพื่อเปลี่ยนแก๊สคาร์บอนไดออกไซด์และน้ำให้เป็นน้ำตาลกลูโคสและแก๊สออกซิเจน',
+        reasoningTip: 'อธิบายบทบาทของพืชในฐานะจุดเชื่อมระหว่างพลังงานแสง แก๊สในบรรยากาศ และการสร้างพลังงานเคมีให้ห่วงโซ่อาหาร',
+        recommendedPairs: ['พลังงานแสง', 'แก๊สคาร์บอนไดออกไซด์ (CO2)', 'น้ำตาลกลูโคส (C6H12O6)', 'สัตว์กินพืช (ผู้บริโภคลำดับที่ 1)']
+      },
+      {
+        id: 'herbivore',
+        title: 'สัตว์กินพืช (ผู้บริโภคลำดับที่ 1)',
+        category: 'biology',
+        icon: 'herbivore',
+        keywords: ['การถ่ายทอดพลังงาน', 'ผู้บริโภคปฐมภูมิ', 'ห่วงโซ่อาหาร'],
+        detail: 'สิ่งมีชีวิตที่ไม่สามารถสร้างอาหารเองได้ ต้องกินพืชเป็นอาหารเพื่อรับพลังงานเคมีและสารอินทรีย์เข้าสู่ร่างกาย โดยมีการถ่ายทอดพลังงานประมาณ 10% ตามกฎสิบเปอร์เซ็นต์',
+        reasoningTip: 'เชื่อมโยงการได้รับพลังงานจากผู้ผลิต และการส่งต่อสสารเมื่อตายลงไปสู่ผู้ย่อยสลายสารอินทรีย์',
+        recommendedPairs: ['พืชสีเขียว (ผู้ผลิต)', 'ผู้ย่อยสลายสารอินทรีย์', 'การหายใจระดับเซลล์']
+      },
+      {
+        id: 'decomposer',
+        title: 'ผู้ย่อยสลายสารอินทรีย์',
+        category: 'biology',
+        icon: 'decomposer',
+        keywords: ['เห็ดรา', 'แบคทีเรีย', 'การหมุนเวียนธาตุอาหาร'],
+        detail: 'จุลินทรีย์ เห็ด รา และแบคทีเรีย ที่หลั่งเอนไซม์ออกมาย่อยสลายซากพืชซากสัตว์ให้กลายเป็นแร่ธาตุอนินทรีย์กลับคืนสู่ดินและบรรยากาศ',
+        reasoningTip: 'เน้นการหมุนเวียนสสารในระบบนิเวศและการปล่อยแก๊สคาร์บอนไดออกไซด์กลับสู่ธรรมชาติ',
+        recommendedPairs: ['สัตว์กินพืช (ผู้บริโภคลำดับที่ 1)', 'พืชสีเขียว (ผู้ผลิต)', 'แก๊สคาร์บอนไดออกไซด์ (CO2)']
+      },
+      {
+        id: 'cell_respiration',
+        title: 'การหายใจระดับเซลล์',
+        category: 'biology',
+        icon: 'respiration',
+        keywords: ['ไมโทคอนเดรีย', 'การสลายกลูโคส', 'พลังงาน ATP'],
+        detail: 'กระบวนการสลายโมเลกุลของน้ำตาลกลูโคสโดยอาศัยแก๊สออกซิเจนภายในไมโทคอนเดรีย เพื่อเปลี่ยนพลังงานเคมีให้เป็นพลังงาน ATP พร้อมปล่อยแก๊สคาร์บอนไดออกไซด์และน้ำ',
+        reasoningTip: 'สามารถเชื่อมโยงแบบตรงกันข้ามกับการสังเคราะห์ด้วยแสงของพืช หรือเชื่อมโยงกับกฎการอนุรักษ์พลังงาน',
+        recommendedPairs: ['น้ำตาลกลูโคส (C6H12O6)', 'แก๊สออกซิเจน (O2)', 'แก๊สคาร์บอนไดออกไซด์ (CO2)', 'กฎการอนุรักษ์พลังงาน']
+      },
+      {
+        id: 'co2',
+        title: 'แก๊สคาร์บอนไดออกไซด์ (CO2)',
+        category: 'chemistry',
+        icon: 'co2',
+        keywords: ['สารตั้งต้นการสังเคราะห์แสง', 'แก๊สเรือนกระจก', 'ลมหายใจออก'],
+        detail: 'สารประกอบโคเวเลนต์ที่เกิดจากการหายใจของสิ่งมีชีวิต การย่อยสลาย และการเผาไหม้เชื้อเพลิงฟอสซิล เป็นสารตั้งต้นสำคัญของพืชและเป็นแก๊สเรือนกระจกหลัก',
+        reasoningTip: 'เชื่อมได้ทั้งฝั่งชีววิทยา (สารตั้งต้นของพืช) และฝั่งโลกและอวกาศ (สาเหตุของปรากฏการณ์เรือนกระจก)',
+        recommendedPairs: ['พืชสีเขียว (ผู้ผลิต)', 'การเผาไหม้เชื้อเพลิงฟอสซิล', 'ปรากฏการณ์เรือนกระจก']
+      },
+      {
+        id: 'o2',
+        title: 'แก๊สออกซิเจน (O2)',
+        category: 'chemistry',
+        icon: 'o2',
+        keywords: ['ผลผลิตจากการสังเคราะห์แสง', 'การเผาไหม้', 'การหายใจ'],
+        detail: 'โมเลกุลของธาตุออกซิเจนที่พืชปล่อยออกมาจากกระบวนการสังเคราะห์ด้วยแสง จำเป็นต่อการหายใจระดับเซลล์ของสิ่งมีชีวิตและปฏิกิริยาการเผาไหม้',
+        reasoningTip: 'อธิบายความสัมพันธ์เชิงเกื้อกูลระหว่างพืชกับสัตว์และปฏิกิริยาเคมีที่ต้องใช้ออกซิเจน',
+        recommendedPairs: ['พืชสีเขียว (ผู้ผลิต)', 'การหายใจระดับเซลล์', 'การเผาไหม้เชื้อเพลิงฟอสซิล']
+      },
+      {
+        id: 'glucose',
+        title: 'น้ำตาลกลูโคส (C6H12O6)',
+        category: 'chemistry',
+        icon: 'glucose',
+        keywords: ['สารอาหารประเภทคาร์โบไฮเดรต', 'แหล่งสะสมพลังงานเคมี', 'ผลผลิตจากพืช'],
+        detail: 'สารอินทรีย์โมเลกุลเดี่ยวที่พืชสังเคราะห์ขึ้นเพื่อกักเก็บพลังงานแสงไว้ในรูปของพันธะเคมี และเป็นแหล่งพลังงานหลักของสิ่งมีชีวิต',
+        reasoningTip: 'เป็นสะพานเชื่อมระหว่างสารเคมี พลังงานเคมี และกระบวนการหายใจระดับเซลล์',
+        recommendedPairs: ['พืชสีเขียว (ผู้ผลิต)', 'พลังงานเคมี', 'การหายใจระดับเซลล์']
+      },
+      {
+        id: 'fossil_fuel',
+        title: 'การเผาไหม้เชื้อเพลิงฟอสซิล',
+        category: 'chemistry',
+        icon: 'fossil',
+        keywords: ['ปฏิกิริยาเคมี', 'ถ่านหิน/น้ำมัน', 'การปล่อยแก๊สสู่บรรยากาศ'],
+        detail: 'ปฏิกิริยาเคมีระหว่างสารประกอบไฮโดรคาร์บอน (ถ่านหิน น้ำมัน แก๊สธรรมชาติ) กับแก๊สออกซิเจน ทำให้เกิดความร้อนและปล่อยแก๊สคาร์บอนไดออกไซด์ปริมาณมาก',
+        reasoningTip: 'ใช้เชื่อมโยงผลกระทบจากกิจกรรมมนุษย์ไปสู่การเพิ่มขึ้นของแก๊สเรือนกระจกและการเปลี่ยนแปลงภูมิอากาศ',
+        recommendedPairs: ['แก๊สคาร์บอนไดออกไซด์ (CO2)', 'พลังงานเคมี', 'การเปลี่ยนแปลงภูมิอากาศ']
+      },
+      {
+        id: 'light_energy',
+        title: 'พลังงานแสง',
+        category: 'physics',
+        icon: 'lightEnergy',
+        keywords: ['คลื่นแสง', 'โฟตอน', 'การแผ่รังสี'],
+        detail: 'พลังงานที่แผ่ออกมาจากแหล่งกำเนิดแสงในรูปคลื่นแม่เหล็กไฟฟ้า เดินทางผ่านสุญญากาศได้ และถูกพืชเปลี่ยนเป็นพลังงานเคมี',
+        reasoningTip: 'เชื่อมจากดวงอาทิตย์ไปยังพืชสีเขียวโดยใช้การ์ด "เปลี่ยนรูปเป็น / สังเคราะห์เป็น"',
+        recommendedPairs: ['ดวงอาทิตย์ (The Sun)', 'พืชสีเขียว (ผู้ผลิต)', 'พลังงานเคมี']
+      },
+      {
+        id: 'chem_energy',
+        title: 'พลังงานเคมี',
+        category: 'physics',
+        icon: 'chemEnergy',
+        keywords: ['พลังงานสะสมในพันธะ', 'อาหาร', 'เชื้อเพลิง'],
+        detail: 'พลังงานที่สะสมอยู่ในพันธะเคมีของสารต่าง ๆ เช่น น้ำตาลกลูโคส อาหาร และเชื้อเพลิงฟอสซิล ซึ่งปลดปล่อยออกมาเมื่อเกิดปฏิกิริยาเคมี',
+        reasoningTip: 'เชื่อมโยงกับการเปลี่ยนรูปพลังงานตามกฎการอนุรักษ์พลังงาน',
+        recommendedPairs: ['น้ำตาลกลูโคส (C6H12O6)', 'กฎการอนุรักษ์พลังงาน', 'การเผาไหม้เชื้อเพลิงฟอสซิล']
+      },
+      {
+        id: 'conservation_law',
+        title: 'กฎการอนุรักษ์พลังงาน',
+        category: 'physics',
+        icon: 'conservation',
+        keywords: ['พลังงานไม่สูญหาย', 'การเปลี่ยนรูปพลังงาน', 'สมดุลพลังงาน'],
+        detail: 'หลักการทางฟิสิกส์ที่ระบุว่าพลังงานไม่สามารถสร้างขึ้นใหม่หรือทำให้สูญหายไปได้ แต่สามารถเปลี่ยนรูปจากพลังงานหนึ่งไปเป็นอีกพลังงานหนึ่งได้เสมอ',
+        reasoningTip: 'เหมาะสำหรับเชื่อมโยงกับกระบวนการเปลี่ยนรูปพลังงานทุกชนิดบนกระดาน',
+        recommendedPairs: ['พลังงานแสง', 'พลังงานเคมี', 'การหายใจระดับเซลล์']
+      },
+      {
+        id: 'heat_transfer',
+        title: 'การถ่ายโอนความร้อน',
+        category: 'physics',
+        icon: 'heat',
+        keywords: ['การนำ', 'การพา', 'การแผ่รังสีความร้อน'],
+        detail: 'การเคลื่อนที่ของพลังงานความร้อนจากบริเวณที่มีอุณหภูมิสูงไปยังบริเวณที่มีอุณหภูมิต่ำกว่า ผ่านตัวกลางหรือการแผ่รังสี',
+        reasoningTip: 'เชื่อมโยงความร้อนจากดวงอาทิตย์สู่บรรยากาศโลกและการเกิดวัฏจักรน้ำ',
+        recommendedPairs: ['ดวงอาทิตย์ (The Sun)', 'วัฏจักรน้ำ', 'ปรากฏการณ์เรือนกระจก']
+      },
+      {
+        id: 'water_cycle',
+        title: 'วัฏจักรน้ำ',
+        category: 'earth',
+        icon: 'waterCycle',
+        keywords: ['การระเหย', 'การควบแน่น', 'หยาดน้ำฟ้า'],
+        detail: 'การหมุนเวียนเปลี่ยนแปลงสถานะของน้ำอย่างต่อเนื่องระหว่างแหล่งน้ำ ผืนดิน และชั้นบรรยากาศ โดยอาศัยพลังงานความร้อนจากดวงอาทิตย์',
+        reasoningTip: 'อธิบายความสัมพันธ์ระหว่างความร้อนจากดวงอาทิตย์กับการเปลี่ยนสถานะของน้ำ',
+        recommendedPairs: ['ดวงอาทิตย์ (The Sun)', 'การถ่ายโอนความร้อน', 'พืชสีเขียว (ผู้ผลิต)']
+      },
+      {
+        id: 'greenhouse_effect',
+        title: 'ปรากฏการณ์เรือนกระจก',
+        category: 'earth',
+        icon: 'greenhouse',
+        keywords: ['การกักเก็บรังสีอินฟราเรด', 'สมดุลพลังงานของโลก', 'แก๊สเรือนกระจก'],
+        detail: 'กระบวนการที่แก๊สเรือนกระจกในชั้นบรรยากาศดูดซับและคายรังสีอินฟราเรดกลับสู่ผิวโลก ช่วยรักษาอุณหภูมิให้เหมาะสมต่อสิ่งมีชีวิต แต่หากมีมากเกินไปจะทำให้โลกร้อนขึ้น',
+        reasoningTip: 'เชื่อมจากแก๊สคาร์บอนไดออกไซด์ไปสู่การเปลี่ยนแปลงภูมิอากาศ',
+        recommendedPairs: ['แก๊สคาร์บอนไดออกไซด์ (CO2)', 'การเปลี่ยนแปลงภูมิอากาศ', 'การถ่ายโอนความร้อน']
+      },
+      {
+        id: 'climate_change',
+        title: 'การเปลี่ยนแปลงภูมิอากาศ',
+        category: 'earth',
+        icon: 'climate',
+        keywords: ['อุณหภูมิเฉลี่ยโลกสูงขึ้น', 'ภาวะโลกร้อน', 'ผลกระทบระบบนิเวศ'],
+        detail: 'การเปลี่ยนแปลงสภาพภูมิอากาศระยะยาวของโลกที่เกิดจากการสะสมตัวของแก๊สเรือนกระจก ส่งผลกระทบต่อสมดุลพลังงานและสิ่งมีชีวิตในระบบนิเวศ',
+        reasoningTip: 'เป็นปลายทางสำคัญที่สรุปผลกระทบเชื่อมโยงจากเคมี ฟิสิกส์ และสิ่งมีชีวิต',
+        recommendedPairs: ['ปรากฏการณ์เรือนกระจก', 'การเผาไหม้เชื้อเพลิงฟอสซิล', 'พืชสีเขียว (ผู้ผลิต)']
+      }
+    ];
+
+    // 6 Link Cards
+    const LINK_CARDS = [
+      {
+        id: 'cause_effect',
+        title: 'เป็นสาเหตุของ / ทำให้เกิด',
+        en: 'Causes / Results in',
+        color: 'from-rose-500 to-red-600',
+        badge: 'เหตุและผล',
+        symbol: '➔',
+        description: 'ใช้อธิบายความสัมพันธ์เชิงเหตุและผล เมื่อมโนทัศน์หนึ่งกระตุ้นหรือก่อให้เกิดอีกมโนทัศน์หนึ่งตามมา',
+        exampleFrom: 'การเผาไหม้เชื้อเพลิงฟอสซิล',
+        exampleTo: 'แก๊สคาร์บอนไดออกไซด์ (CO2)',
+        exampleReason: 'การเผาไหม้เชื้อเพลิงฟอสซิล [ทำให้เกิด] แก๊สคาร์บอนไดออกไซด์ เพราะสารประกอบไฮโดรคาร์บอนทำปฏิกิริยากับออกซิเจนแล้วปล่อยแก๊ส CO2 สู่บรรยากาศ'
+      },
+      {
+        id: 'transform',
+        title: 'เปลี่ยนรูปเป็น / สังเคราะห์เป็น',
+        en: 'Transforms / Synthesizes into',
+        color: 'from-amber-500 to-orange-600',
+        badge: 'การเปลี่ยนแปลง',
+        symbol: '⇄',
+        description: 'ใช้อธิบายการเปลี่ยนสถานะ การเปลี่ยนรูปพลังงาน หรือปฏิกิริยาเคมีที่เปลี่ยนสารตั้งต้นเป็นผลิตภัณฑ์ใหม่',
+        exampleFrom: 'พลังงานแสง',
+        exampleTo: 'พลังงานเคมี',
+        exampleReason: 'พลังงานแสง [เปลี่ยนรูปเป็น] พลังงานเคมี ผ่านกระบวนการสังเคราะห์ด้วยแสงของพืชที่เก็บพลังงานไว้ในรูปของน้ำตาลกลูโคส'
+      },
+      {
+        id: 'factor',
+        title: 'เป็นสารตั้งต้น / ปัจจัยสำคัญของ',
+        en: 'Is a Reactant / Key Factor of',
+        color: 'from-sky-500 to-blue-600',
+        badge: 'องค์ประกอบ/ปัจจัย',
+        symbol: '✦',
+        description: 'ใช้อธิบายเงื่อนไข ปัจจัยจำเป็น หรือสารตั้งต้นที่ขาดไม่ได้ในการเกิดกระบวนการทางวิทยาศาสตร์',
+        exampleFrom: 'แก๊สคาร์บอนไดออกไซด์ (CO2)',
+        exampleTo: 'พืชสีเขียว (ผู้ผลิต)',
+        exampleReason: 'แก๊สคาร์บอนไดออกไซด์ [เป็นสารตั้งต้นสำคัญของ] พืชสีเขียว ในกระบวนการสังเคราะห์ด้วยแสงเพื่อสร้างน้ำตาลกลูโคส'
+      },
+      {
+        id: 'transfer',
+        title: 'ถ่ายทอดพลังงานสู่',
+        en: 'Transfers Energy to',
+        color: 'from-emerald-500 to-teal-600',
+        badge: 'การถ่ายทอด/ลำดับ',
+        symbol: '⚡',
+        description: 'ใช้อธิบายการส่งต่อพลังงานหรือสสารตามลำดับขั้น เช่น ห่วงโซ่อาหาร หรือการถ่ายโอนความร้อน',
+        exampleFrom: 'พืชสีเขียว (ผู้ผลิต)',
+        exampleTo: 'สัตว์กินพืช (ผู้บริโภคลำดับที่ 1)',
+        exampleReason: 'พืชสีเขียว [ถ่ายทอดพลังงานสู่] สัตว์กินพืช เมื่อสัตว์กินพืชเข้าไป พลังงานเคมีประมาณ 10% จะถูกส่งต่อไปตามลำดับขั้นของห่วงโซ่อาหาร'
+      },
+      {
+        id: 'opposite',
+        title: 'ทำงานตรงกันข้ามกับ / ยับยั้ง',
+        en: 'Acts Oppositely / Inhibits',
+        color: 'from-purple-500 to-violet-600',
+        badge: 'ความสัมพันธ์ตรงข้าม',
+        symbol: '⇌',
+        description: 'ใช้อธิบายกระบวนการที่มีทิศทางย้อนกลับกัน สมดุลตรงข้าม หรือปัจจัยที่ช่วยยับยั้งอีกสิ่งหนึ่ง',
+        exampleFrom: 'พืชสีเขียว (ผู้ผลิต)',
+        exampleTo: 'การหายใจระดับเซลล์',
+        exampleReason: 'การสังเคราะห์ด้วยแสงของพืชสีเขียว [ทำงานตรงกันข้ามกับ] การหายใจระดับเซลล์ เพราะพืชดูดซับ CO2 และปล่อย O2 ส่วนการหายใจใช้ O2 และปล่อย CO2'
+      },
+      {
+        id: 'principle',
+        title: 'เป็นไปตามหลักการของ',
+        en: 'Follows the Principle of',
+        color: 'from-indigo-500 to-blue-700',
+        badge: 'กฎเกณฑ์/หลักการ',
+        symbol: '⚖',
+        description: 'ใช้อธิบายปรากฏการณ์หรือกระบวนการที่อยู่ภายใต้กฎ ทฤษฎี หรือหลักการพื้นฐานทางวิทยาศาสตร์',
+        exampleFrom: 'การหายใจระดับเซลล์',
+        exampleTo: 'กฎการอนุรักษ์พลังงาน',
+        exampleReason: 'การหายใจระดับเซลล์ [เป็นไปตามหลักการของ] กฎการอนุรักษ์พลังงาน เพราะพลังงานเคมีในกลูโคสไม่ได้สูญหาย แต่เปลี่ยนเป็นพลังงาน ATP และความร้อน'
+      }
+    ];
+
+    // 4 Action Cards
+    const ACTION_CARDS = [
+      {
+        id: 'catalyst',
+        title: 'ตัวเร่งปฏิกิริยา (Catalyst)',
+        en: 'Double Link Action',
+        accent: 'border-amber-400 bg-amber-50/60',
+        pill: 'bg-amber-500 text-white',
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
+        effect: 'ในเทิร์นนี้ ผู้เล่นสามารถลง "การ์ดเชื่อมโยง" ได้ 2 ใบต่อเนื่องกัน (แทนที่จะลงได้เพียง 1 ใบ) หากอธิบายเหตุผลถูกต้องทั้ง 2 จุด รับคะแนนคูณสองทันที!',
+        tip: 'เก็บไว้ใช้เมื่อมีจุดเชื่อมต่อพร้อมกัน 2 ด้านที่ติดกับช่องโบนัส x2 เพื่อทำคะแนนแซงคู่แข่ง'
+      },
+      {
+        id: 'mutation',
+        title: 'การกลายพันธุ์ (Mutation)',
+        en: 'Swap Concept Cards',
+        accent: 'border-emerald-400 bg-emerald-50/60',
+        pill: 'bg-emerald-600 text-white',
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7"><path d="M16 3h5v5"/><path d="M4 20L21 3"/><path d="M21 16v5h-5"/><path d="M15 15l6 6"/><path d="M4 4l5 5"/></svg>`,
+        effect: 'เลือกสลับตำแหน่งการ์ดมโนทัศน์ 2 ใบบนกระดานที่ยังไม่มีเส้นเชื่อมโยงยึดครอง เพื่อเปิดทางให้การ์ดเชื่อมโยงในมือของคุณสามารถเชื่อมต่อได้ทันที',
+        tip: 'ใช้จัดระเบียบโครงข่ายใหม่เมื่อการ์ดมโนทัศน์บนกระดานอยู่ห่างกันเกินไป'
+      },
+      {
+        id: 'peer_review',
+        title: 'ตรวจสอบสมมติฐาน (Peer Review)',
+        en: 'Challenge & Counter',
+        accent: 'border-rose-400 bg-rose-50/60',
+        pill: 'bg-rose-600 text-white',
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>`,
+        effect: 'ใช้ทันทีเมื่อผู้เล่นคนอื่นอธิบายเหตุผลการเชื่อมโยงคลาดเคลื่อนทางวิทยาศาสตร์ หากคุณชี้จุดผิดและอธิบายใหม่ได้ถูกต้อง คุณจะยึดคะแนนเส้นเชื่อมโยงนั้นแทนทันที!',
+        tip: 'กระตุ้นให้ทุกคนตั้งใจฟังคำอธิบายของเพื่อนและตรวจสอบความถูกต้องเชิงวิชาการ'
+      },
+      {
+        id: 'reversal',
+        title: 'สลับขั้วปฏิกิริยา (Reversal)',
+        en: 'Reverse Link Direction',
+        accent: 'border-purple-400 bg-purple-50/60',
+        pill: 'bg-purple-600 text-white',
+        icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="w-7 h-7"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>`,
+        effect: 'ใช้เปลี่ยนทิศทางของเส้นเชื่อมโยงที่มีอยู่แล้วบนกระดาน (เช่น จากปฏิกิริยาไปข้างหน้าเป็นย้อนกลับ) พร้อมอธิบายเหตุผลมุมมองใหม่เพื่อรับโบนัส +2 คะแนน',
+        tip: 'เหมาะสำหรับเนื้อหาเรื่องสมดุลเคมี วัฏจักรสสาร และการถ่ายทอดพลังงาน'
+      }
+    ];
+
+    /* ---------------------------------------------------------------------
+       2. 19-HEX BOARD GEOMETRY (3-4-5-4-3 Axial Coordinates)
+       --------------------------------------------------------------------- */
+    // Exact axial coordinates (q, r) for radius-2 hexagon = 19 cells
+    // Row 0 (r=-2): 3 cells | Row 1 (r=-1): 4 cells | Row 2 (r=0): 5 cells | Row 3 (r=1): 4 cells | Row 4 (r=2): 3 cells
+    const HEX_COORDS = [
+      // Row 0 (3 cells)
+      { id: '0,-2', q: 0, r: -2, bonus: true },
+      { id: '1,-2', q: 1, r: -2, bonus: false },
+      { id: '2,-2', q: 2, r: -2, bonus: true },
+      // Row 1 (4 cells)
+      { id: '-1,-1', q: -1, r: -1, bonus: false },
+      { id: '0,-1', q: 0, r: -1, bonus: false },
+      { id: '1,-1', q: 1, r: -1, bonus: false },
+      { id: '2,-1', q: 2, r: -1, bonus: false },
+      // Row 2 (5 cells)
+      { id: '-2,0', q: -2, r: 0, bonus: true },
+      { id: '-1,0', q: -1, r: 0, bonus: false },
+      { id: '0,0', q: 0, r: 0, bonus: false, isCore: true },
+      { id: '1,0', q: 1, r: 0, bonus: false },
+      { id: '2,0', q: 2, r: 0, bonus: true },
+      // Row 3 (4 cells)
+      { id: '-2,1', q: -2, r: 1, bonus: false },
+      { id: '-1,1', q: -1, r: 1, bonus: false },
+      { id: '0,1', q: 0, r: 1, bonus: false },
+      { id: '1,1', q: 1, r: 1, bonus: false },
+      // Row 4 (3 cells)
+      { id: '-2,2', q: -2, r: 2, bonus: true },
+      { id: '-1,2', q: -1, r: 2, bonus: false },
+      { id: '0,2', q: 0, r: 2, bonus: true }
+    ];
+
+    // 6 neighbor axial directions
+    const AXIAL_DIRS = [
+      { q: 1, r: 0 }, { q: 1, r: -1 }, { q: 0, r: -1 },
+      { q: -1, r: 0 }, { q: -1, r: 1 }, { q: 0, r: 1 }
+    ];
+
+    // Application State
+    let state = {
+      activeTab: 'board',
+      boardPlacements: {
+        '0,0': 'sun' // Center starts with Core Concept: The Sun
+      },
+      boardLinks: [], // { id, cellA, cellB, linkCardId, reason, points }
+      selectedSideCardId: null,
+      boardDeckFilter: 'all',
+      conceptFilter: 'all',
+      inkSaver: false
+    };
+
+    /* ---------------------------------------------------------------------
+       3. UTILITY & TOAST HELPERS
+       --------------------------------------------------------------------- */
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const colors = {
+        info: 'bg-slate-900 text-white border-slate-700',
+        success: 'bg-emerald-700 text-white border-emerald-500',
+        warning: 'bg-amber-600 text-white border-amber-400'
+      };
+      const el = document.createElement('div');
+      el.className = `pointer-events-auto px-4 py-3 rounded-xl shadow-lg border text-xs sm:text-sm font-heading flex items-center gap-2.5 transition-all transform translate-y-2 opacity-0 ${colors[type] || colors.info}`;
+      el.innerHTML = `<span>${message}</span>`;
+      container.appendChild(el);
+
+      requestAnimationFrame(() => {
+        el.classList.remove('translate-y-2', 'opacity-0');
+      });
+
+      setTimeout(() => {
+        el.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => el.remove(), 250);
+      }, 3200);
+    }
+
+    function getConceptById(id) {
+      return conceptCards.find(c => c.id === id);
+    }
+
+    function getLinkById(id) {
+      return LINK_CARDS.find(l => l.id === id);
+    }
+
+    function axialToPixel(q, r, size, centerX, centerY) {
+      // Pointy-top hexagon conversion
+      const x = centerX + size * Math.sqrt(3) * (q + r / 2);
+      const y = centerY + size * (3 / 2) * r;
+      return { x, y };
+    }
+
+    function getHexPolygonPoints(cx, cy, size) {
+      const pts = [];
+      for (let i = 0; i < 6; i++) {
+        const angleDeg = 60 * i - 30;
+        const angleRad = (Math.PI / 180) * angleDeg;
+        const px = cx + size * Math.cos(angleRad);
+        const py = cy + size * Math.sin(angleRad);
+        pts.push(`${px.toFixed(2)},${py.toFixed(2)}`);
+      }
+      return pts.join(' ');
+    }
+
+    function makePairKey(idA, idB) {
+      return [idA, idB].sort().join('__');
+    }
+
+    /* ---------------------------------------------------------------------
+       4. TAB NAVIGATION
+       --------------------------------------------------------------------- */
+    function switchTab(tabName) {
+      state.activeTab = tabName;
+
+      // Update Tab Buttons
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('bg-indigo-600', 'text-white', 'shadow-sm');
+        btn.classList.add('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+      });
+      const activeBtn = document.getElementById(`tab-btn-${tabName}`);
+      if (activeBtn) {
+        activeBtn.classList.remove('bg-slate-100', 'text-slate-600', 'hover:bg-slate-200');
+        activeBtn.classList.add('bg-indigo-600', 'text-white', 'shadow-sm');
+      }
+
+      // Show/Hide Sections
+      document.querySelectorAll('.tab-section').forEach(sec => sec.classList.add('hidden'));
+      const activeSec = document.getElementById(`section-${tabName}`);
+      if (activeSec) activeSec.classList.remove('hidden');
+
+      if (tabName === 'print') {
+        renderPrintStudio();
+      }
+    }
+
+    /* ---------------------------------------------------------------------
+       5. TAB 1: INTERACTIVE HEX BOARD LOGIC
+       --------------------------------------------------------------------- */
+    function renderHexBoard() {
+      const cellsLayer = document.getElementById('hex-cells-layer');
+      const linksLayer = document.getElementById('hex-links-layer');
+      const nodesLayer = document.getElementById('hex-nodes-layer');
+
+      cellsLayer.innerHTML = '';
+      linksLayer.innerHTML = '';
+      nodesLayer.innerHTML = '';
+
+      const size = 64;
+      const centerX = 350;
+      const centerY = 310;
+
+      // Map pixel centers for every hex
+      const pixelMap = {};
+      HEX_COORDS.forEach(cell => {
+        pixelMap[cell.id] = axialToPixel(cell.q, cell.r, size, centerX, centerY);
+      });
+
+      // 1. Draw all 19 Hexagon Cells
+      HEX_COORDS.forEach(cell => {
+        const { x, y } = pixelMap[cell.id];
+        const placedCardId = state.boardPlacements[cell.id];
+        const card = placedCardId ? getConceptById(placedCardId) : null;
+        const meta = card ? CATEGORY_META[card.category] : null;
+
+        let fill = '#f8fafc';
+        let stroke = '#cbd5e1';
+        let strokeWidth = '2';
+
+        if (card && meta) {
+          fill = meta.hexFill;
+          stroke = meta.hexStroke;
+          strokeWidth = '3';
+        } else if (cell.bonus) {
+          fill = '#fff1f2';
+          stroke = '#fda4af';
+          strokeWidth = '2.2';
+        }
+
+        const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+        g.setAttribute('class', 'hex-cell-group');
+        g.onclick = () => handleHexClick(cell);
+
+        const poly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon');
+        poly.setAttribute('points', getHexPolygonPoints(x, y, size - 2.5));
+        poly.setAttribute('fill', fill);
+        poly.setAttribute('stroke', stroke);
+        poly.setAttribute('stroke-width', strokeWidth);
+        poly.setAttribute('class', 'hex-polygon');
+        if (card) poly.setAttribute('filter', 'url(#cardShadow)');
+        g.appendChild(poly);
+
+        // Bonus badge if bonus cell
+        if (cell.bonus) {
+          const badgeY = card ? y - 34 : y - 24;
+          const badgeRect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+          badgeRect.setAttribute('x', x - 20);
+          badgeRect.setAttribute('y', badgeY - 9);
+          badgeRect.setAttribute('width', '40');
+          badgeRect.setAttribute('height', '16');
+          badgeRect.setAttribute('rx', '8');
+          badgeRect.setAttribute('fill', '#e11d48');
+          g.appendChild(badgeRect);
+
+          const badgeText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          badgeText.setAttribute('x', x);
+          badgeText.setAttribute('y', badgeY + 3);
+          badgeText.setAttribute('text-anchor', 'middle');
+          badgeText.setAttribute('fill', '#ffffff');
+          badgeText.setAttribute('font-size', '9.5');
+          badgeText.setAttribute('font-weight', '700');
+          badgeText.setAttribute('font-family', 'Prompt, sans-serif');
+          badgeText.textContent = 'โบนัส x2';
+          g.appendChild(badgeText);
+        }
+
+        if (card) {
+          // Category tag
+          const catText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          catText.setAttribute('x', x);
+          catText.setAttribute('y', cell.bonus ? y - 10 : y - 20);
+          catText.setAttribute('text-anchor', 'middle');
+          catText.setAttribute('fill', meta.accentHex);
+          catText.setAttribute('font-size', '9.5');
+          catText.setAttribute('font-weight', '600');
+          catText.setAttribute('font-family', 'Prompt, sans-serif');
+          catText.textContent = meta.shortLabel;
+          g.appendChild(catText);
+
+          // Wrap Thai Concept Title nicely into 1-2 lines
+          const cleanTitle = card.title.replace(/\s*\(.*?\)\s*/g, '');
+          const lines = wrapThaiLabel(cleanTitle, 13);
+          lines.forEach((line, idx) => {
+            const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+            t.setAttribute('x', x);
+            t.setAttribute('y', (cell.bonus ? y + 7 : y + 2) + idx * 15);
+            t.setAttribute('text-anchor', 'middle');
+            t.setAttribute('fill', '#0f172a');
+            t.setAttribute('font-size', '11.5');
+            t.setAttribute('font-weight', '700');
+            t.setAttribute('font-family', 'Prompt, sans-serif');
+            t.textContent = line;
+            g.appendChild(t);
+          });
+        } else {
+          // Empty slot hint
+          const hint = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+          hint.setAttribute('x', x);
+          hint.setAttribute('y', cell.bonus ? y + 10 : y + 4);
+          hint.setAttribute('text-anchor', 'middle');
+          hint.setAttribute('fill', cell.bonus ? '#e11d48' : '#94a3b8');
+          hint.setAttribute('font-size', '10.5');
+          hint.setAttribute('font-family', 'Sarabun, sans-serif');
+          hint.textContent = state.selectedSideCardId ? 'คลิกเพื่อวางการ์ด' : '+ วางการ์ด';
+          g.appendChild(hint);
+        }
+
+        cellsLayer.appendChild(g);
+      });
+
+      // 2. Find all adjacent pairs where BOTH cells have cards placed
+      const processedPairs = new Set();
+      HEX_COORDS.forEach(cellA => {
+        if (!state.boardPlacements[cellA.id]) return;
+
+        AXIAL_DIRS.forEach(dir => {
+          const nq = cellA.q + dir.q;
+          const nr = cellA.r + dir.r;
+          const neighborId = `${nq},${nr}`;
+          const cellB = HEX_COORDS.find(c => c.id === neighborId);
+
+          if (cellB && state.boardPlacements[cellB.id]) {
+            const pairKey = makePairKey(cellA.id, cellB.id);
+            if (processedPairs.has(pairKey)) return;
+            processedPairs.add(pairKey);
+
+            const pA = pixelMap[cellA.id];
+            const pB = pixelMap[cellB.id];
+            const midX = (pA.x + pB.x) / 2;
+            const midY = (pA.y + pB.y) / 2;
+
+            const existingLink = state.boardLinks.find(l => l.id === pairKey);
+
+            if (existingLink) {
+              // Draw Active Connection Line & Badge
+              const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+              line.setAttribute('x1', pA.x);
+              line.setAttribute('y1', pA.y);
+              line.setAttribute('x2', pB.x);
+              line.setAttribute('y2', pB.y);
+              line.setAttribute('stroke', '#4f46e5');
+              line.setAttribute('stroke-width', '4.5');
+              line.setAttribute('stroke-linecap', 'round');
+              line.setAttribute('opacity', '0.75');
+              linksLayer.appendChild(line);
+
+              // Interactive Node Pill showing Points
+              const nodeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+              nodeG.setAttribute('class', 'link-node-group');
+              nodeG.onclick = (e) => {
+                e.stopPropagation();
+                openLinkDetailOrEditModal(existingLink);
+              };
+
+              const pill = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+              pill.setAttribute('x', midX - 24);
+              pill.setAttribute('y', midY - 12);
+              pill.setAttribute('width', '48');
+              pill.setAttribute('height', '24');
+              pill.setAttribute('rx', '12');
+              pill.setAttribute('fill', '#4f46e5');
+              pill.setAttribute('stroke', '#ffffff');
+              pill.setAttribute('stroke-width', '2');
+              nodeG.appendChild(pill);
+
+              const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              txt.setAttribute('x', midX);
+              txt.setAttribute('y', midY + 4);
+              txt.setAttribute('text-anchor', 'middle');
+              txt.setAttribute('fill', '#ffffff');
+              txt.setAttribute('font-size', '10.5');
+              txt.setAttribute('font-weight', '700');
+              txt.setAttribute('font-family', 'Prompt, sans-serif');
+              txt.textContent = `+${existingLink.points} คะแนน`;
+              nodeG.appendChild(txt);
+
+              nodesLayer.appendChild(nodeG);
+            } else {
+              // Draw (+) Button to create a Link Card connection!
+              const nodeG = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+              nodeG.setAttribute('class', 'link-node-group');
+              nodeG.onclick = (e) => {
+                e.stopPropagation();
+                openCreateLinkModal(cellA.id, cellB.id);
+              };
+
+              const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+              circle.setAttribute('cx', midX);
+              circle.setAttribute('cy', midY);
+              circle.setAttribute('r', '14');
+              circle.setAttribute('fill', '#0f172a');
+              circle.setAttribute('stroke', '#ffffff');
+              circle.setAttribute('stroke-width', '2.5');
+              circle.setAttribute('class', 'link-node-circle');
+              nodeG.appendChild(circle);
+
+              const plus = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+              plus.setAttribute('x', midX);
+              plus.setAttribute('y', midY + 5);
+              plus.setAttribute('text-anchor', 'middle');
+              plus.setAttribute('fill', '#ffffff');
+              plus.setAttribute('font-size', '16');
+              plus.setAttribute('font-weight', '700');
+              plus.setAttribute('font-family', 'Prompt, sans-serif');
+              plus.textContent = '+';
+              nodeG.appendChild(plus);
+
+              nodesLayer.appendChild(nodeG);
+            }
+          }
+        });
+      });
+
+      updateBoardStatsAndLog();
+      renderBoardSideDeck();
+    }
+
+    function wrapThaiLabel(text, maxChars) {
+      if (text.length <= maxChars) return [text];
+      const mid = Math.ceil(text.length / 2);
+      return [text.slice(0, mid), text.slice(mid)];
+    }
+
+    function handleHexClick(cell) {
+      const existingCardId = state.boardPlacements[cell.id];
+
+      // If cell already has a card, open modal to view or remove it
+      if (existingCardId) {
+        const card = getConceptById(existingCardId);
+        openPlacedHexModal(cell, card);
+        return;
+      }
+
+      // If user pre-selected a card from the side deck, place it directly
+      if (state.selectedSideCardId) {
+        placeCardOnHex(cell.id, state.selectedSideCardId);
+        state.selectedSideCardId = null;
+        document.getElementById('selected-deck-indicator').classList.add('hidden');
+        return;
+      }
+
+      // Otherwise open quick card selector modal for this hex cell
+      openSelectCardForHexModal(cell);
+    }
+
+    function placeCardOnHex(cellId, cardId) {
+      // Prevent placing same card twice
+      const alreadyAt = Object.keys(state.boardPlacements).find(k => state.boardPlacements[k] === cardId);
+      if (alreadyAt) {
+        showToast('การ์ดใบนี้อยู่บนกระดานแล้ว', 'warning');
+        return;
+      }
+      state.boardPlacements[cellId] = cardId;
+      const card = getConceptById(cardId);
+      showToast(`วางการ์ด "${card.title}" ลงบนกระดานแล้ว`, 'success');
+      renderHexBoard();
+    }
+
+    function removeCardFromHex(cellId) {
+      if (cellId === '0,0') {
+        showToast('ไม่สามารถนำการ์ดจุดศูนย์กลาง (ดวงอาทิตย์) ออกจากกระดานได้', 'warning');
+        return;
+      }
+      delete state.boardPlacements[cellId];
+      // Also remove any links connected to this cell
+      state.boardLinks = state.boardLinks.filter(l => l.cellA !== cellId && l.cellB !== cellId);
+      closeModal();
+      showToast('นำการ์ดออกจากกระดานเรียบร้อย', 'info');
+      renderHexBoard();
+    }
+
+    function selectSideDeckCard(cardId) {
+      if (Object.values(state.boardPlacements).includes(cardId)) {
+        showToast('การ์ดใบนี้ถูกวางบนกระดานแล้ว', 'warning');
+        return;
+      }
+      if (state.selectedSideCardId === cardId) {
+        state.selectedSideCardId = null;
+        document.getElementById('selected-deck-indicator').classList.add('hidden');
+      } else {
+        state.selectedSideCardId = cardId;
+        document.getElementById('selected-deck-indicator').classList.remove('hidden');
+        const c = getConceptById(cardId);
+        showToast(`เลือก "${c.title}" แล้ว คลิกช่องว่างบนกระดานเพื่อวาง`, 'info');
+      }
+      renderBoardSideDeck();
+      renderHexBoard();
+    }
+
+    function filterBoardDeck(cat) {
+      state.boardDeckFilter = cat;
+      document.querySelectorAll('.deck-filter-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.classList.add('ring-2', 'ring-indigo-500', 'font-bold');
+        } else {
+          btn.classList.remove('ring-2', 'ring-indigo-500', 'font-bold');
+        }
+      });
+      renderBoardSideDeck();
+    }
+
+    function renderBoardSideDeck() {
+      const container = document.getElementById('board-side-deck');
+      const placedIds = new Set(Object.values(state.boardPlacements));
+
+      const filtered = conceptCards.filter(c => {
+        if (state.boardDeckFilter === 'all') return true;
+        return c.category === state.boardDeckFilter;
+      });
+
+      container.innerHTML = filtered.map(card => {
+        const meta = CATEGORY_META[card.category];
+        const isPlaced = placedIds.has(card.id);
+        const isSelected = state.selectedSideCardId === card.id;
+
+        return `
+          <div onclick="${isPlaced ? '' : `selectSideDeckCard('${card.id}')`}"
+               class="p-3 rounded-xl border transition-all flex items-center justify-between gap-3 ${
+                 isPlaced
+                   ? 'bg-slate-50 border-slate-200 opacity-55 cursor-not-allowed'
+                   : isSelected
+                     ? 'bg-indigo-50 border-indigo-500 ring-2 ring-indigo-300 cursor-pointer'
+                     : 'bg-white border-slate-200 hover:border-indigo-300 hover:bg-slate-50 cursor-pointer'
+               }">
+            <div class="flex items-center gap-2.5 min-w-0">
+              <div class="w-8 h-8 rounded-lg ${meta.bgLight} ${meta.textDark} p-1.5 shrink-0 border ${meta.border}">
+                ${ICONS[card.icon] || ICONS.custom}
+              </div>
+              <div class="min-w-0">
+                <div class="text-xs font-heading font-bold text-slate-900 truncate">${card.title}</div>
+                <div class="text-[11px] text-slate-500 truncate">${card.keywords.join(' • ')}</div>
+              </div>
+            </div>
+            <span class="px-2 py-0.5 rounded-md text-[10px] font-heading font-semibold shrink-0 border ${
+              isPlaced ? 'bg-slate-200 text-slate-600 border-slate-300' : meta.badgeBg
+            }">
+              ${isPlaced ? 'วางแล้ว' : meta.shortLabel}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function updateBoardStatsAndLog() {
+      const placedCount = Object.keys(state.boardPlacements).length;
+      const linkCount = state.boardLinks.length;
+      const totalScore = state.boardLinks.reduce((sum, l) => sum + l.points, 0);
+
+      document.getElementById('board-placed-count').textContent = placedCount;
+      document.getElementById('board-link-count').textContent = linkCount;
+      document.getElementById('board-total-score').textContent = totalScore;
+      document.getElementById('log-count').textContent = linkCount;
+
+      const listEl = document.getElementById('board-connections-list');
+      if (linkCount === 0) {
+        listEl.innerHTML = `
+          <div class="text-xs sm:text-sm text-slate-400 bg-slate-50 rounded-xl p-4 text-center border border-dashed border-slate-200">
+            ยังไม่มีเส้นเชื่อมโยงบนกระดาน ลองวางการ์ดมโนทัศน์ติดกับ "ดวงอาทิตย์" แล้วกดปุ่ม (+) หรือกดปุ่ม <strong>"โหลดตัวอย่างการเล่น (Demo Board)"</strong>
+          </div>
+        `;
+        return;
+      }
+
+      listEl.innerHTML = state.boardLinks.map((link, idx) => {
+        const cardA = getConceptById(link.cellA_cardId || state.boardPlacements[link.cellA]);
+        const cardB = getConceptById(link.cellB_cardId || state.boardPlacements[link.cellB]);
+        const linkCard = getLinkById(link.linkCardId);
+        return `
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div class="space-y-1">
+              <div class="flex flex-wrap items-center gap-1.5 text-xs font-heading font-bold">
+                <span class="text-slate-400">#${idx + 1}</span>
+                <span class="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800">${cardA ? cardA.title : ''}</span>
+                <span class="px-2 py-0.5 rounded bg-indigo-600 text-white">${linkCard ? linkCard.title : ''}</span>
+                <span class="px-2 py-0.5 rounded bg-white border border-slate-200 text-slate-800">${cardB ? cardB.title : ''}</span>
+              </div>
+              <p class="text-xs text-slate-600 leading-relaxed">"${link.reason}"</p>
+            </div>
+            <div class="flex items-center gap-2 shrink-0 self-end sm:self-center">
+              <span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-800 font-heading font-bold text-xs">+${link.points} คะแนน</span>
+              <button onclick="deleteBoardLink('${link.id}')" class="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors" title="ลบเส้นเชื่อมโยงนี้">
+                <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function deleteBoardLink(linkId) {
+      state.boardLinks = state.boardLinks.filter(l => l.id !== linkId);
+      showToast('ลบเส้นเชื่อมโยงแล้ว', 'info');
+      renderHexBoard();
+    }
+
+    function resetBoard() {
+      state.boardPlacements = { '0,0': 'sun' };
+      state.boardLinks = [];
+      state.selectedSideCardId = null;
+      document.getElementById('selected-deck-indicator').classList.add('hidden');
+      showToast('ล้างกระดานเรียบร้อย (เหลือจุดศูนย์กลาง: ดวงอาทิตย์)', 'info');
+      renderHexBoard();
+    }
+
+    function loadDemoBoard() {
+      // Load a rich educational science network with 7 cards & 6 verified scientific links
+      state.boardPlacements = {
+        '0,0': 'sun',
+        '1,-1': 'light_energy',
+        '1,0': 'green_plant',
+        '2,0': 'glucose',       // Bonus x2 cell!
+        '1,1': 'cell_respiration',
+        '0,1': 'co2',
+        '-1,1': 'fossil_fuel'
+      };
+
+      state.boardLinks = [
+        {
+          id: makePairKey('0,0', '1,-1'),
+          cellA: '0,0',
+          cellB: '1,-1',
+          linkCardId: 'cause_effect',
+          reason: 'ดวงอาทิตย์ [ทำให้เกิด] พลังงานแสง โดยแผ่รังสีคลื่นแม่เหล็กไฟฟ้ามายังพื้นผิวโลกอย่างต่อเนื่อง',
+          points: 2
+        },
+        {
+          id: makePairKey('1,-1', '1,0'),
+          cellA: '1,-1',
+          cellB: '1,0',
+          linkCardId: 'factor',
+          reason: 'พลังงานแสง [เป็นปัจจัยสำคัญของ] พืชสีเขียว ในการกระตุ้นคลอโรฟิลล์เพื่อเริ่มต้นกระบวนการสังเคราะห์ด้วยแสง',
+          points: 2
+        },
+        {
+          id: makePairKey('1,0', '2,0'),
+          cellA: '1,0',
+          cellB: '2,0',
+          linkCardId: 'transform',
+          reason: 'พืชสีเขียว [สังเคราะห์เป็น] น้ำตาลกลูโคส (C6H12O6) เพื่อกักเก็บพลังงานแสงไว้ในรูปพลังงานเคมี (เชื่อมช่องโบนัส x2!)',
+          points: 4
+        },
+        {
+          id: makePairKey('2,0', '1,1'),
+          cellA: '2,0',
+          cellB: '1,1',
+          linkCardId: 'factor',
+          reason: 'น้ำตาลกลูโคส [เป็นสารตั้งต้นสำคัญของ] การหายใจระดับเซลล์ ภายในไมโทคอนเดรียเพื่อสลายเป็นพลังงาน ATP (เชื่อมช่องโบนัส x2!)',
+          points: 4
+        },
+        {
+          id: makePairKey('1,1', '0,1'),
+          cellA: '1,1',
+          cellB: '0,1',
+          linkCardId: 'cause_effect',
+          reason: 'การหายใจระดับเซลล์ [ทำให้เกิด] แก๊สคาร์บอนไดออกไซด์ (CO2) เป็นผลพลอยได้และปล่อยออกสู่บรรยากาศผ่านการหายใจออก',
+          points: 2
+        },
+        {
+          id: makePairKey('0,1', '1,0'),
+          cellA: '0,1',
+          cellB: '1,0',
+          linkCardId: 'factor',
+          reason: 'แก๊สคาร์บอนไดออกไซด์ (CO2) [เป็นสารตั้งต้นของ] พืชสีเขียว เกิดเป็นวัฏจักรหมุนเวียนแก๊สในระบบนิเวศ',
+          points: 2
+        }
+      ];
+
+      showToast('โหลดตัวอย่างการเล่น (Demo Board) 6 เส้นเชื่อมโยงสำเร็จ!', 'success');
+      renderHexBoard();
+    }
+
+    /* ---------------------------------------------------------------------
+       6. TAB 2: CONCEPT CARDS LIBRARY & CUSTOM CARD CREATOR
+       --------------------------------------------------------------------- */
+    function filterConceptLibrary(cat) {
+      state.conceptFilter = cat;
+      document.querySelectorAll('.concept-filter-btn').forEach(btn => {
+        if (btn.dataset.cat === cat) {
+          btn.classList.add('ring-2', 'ring-indigo-500', 'font-bold');
+        } else {
+          btn.classList.remove('ring-2', 'ring-indigo-500', 'font-bold');
+        }
+      });
+      renderConceptCardsGrid();
+    }
+
+    function renderConceptCardsGrid() {
+      document.getElementById('count-all').textContent = conceptCards.length;
+      const grid = document.getElementById('concept-cards-grid');
+
+      const filtered = conceptCards.filter(c => {
+        if (state.conceptFilter === 'all') return true;
+        return c.category === state.conceptFilter;
+      });
+
+      grid.innerHTML = filtered.map(card => {
+        const meta = CATEGORY_META[card.category];
+        return `
+          <div onclick="openConceptDetailModal('${card.id}')" class="game-card bg-white rounded-2xl border-2 ${meta.border} overflow-hidden shadow-sm cursor-pointer flex flex-col justify-between">
+            <div>
+              <!-- Card Top Category Banner -->
+              <div class="bg-gradient-to-r ${meta.headerGrad} px-4 py-2 flex items-center justify-between text-white">
+                <span class="text-xs font-heading font-semibold tracking-wide">${meta.shortLabel}</span>
+                <span class="text-[10px] font-heading uppercase opacity-90 bg-white/20 px-2 py-0.5 rounded-full">Concept Card</span>
+              </div>
+
+              <!-- Card Icon & Title -->
+              <div class="p-5 flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-2xl ${meta.bgLight} ${meta.textDark} p-3.5 mb-3 border ${meta.border} shadow-inner">
+                  ${ICONS[card.icon] || ICONS.custom}
+                </div>
+                <h3 class="text-base font-bold text-slate-900 leading-snug">${card.title}</h3>
+              </div>
+            </div>
+
+            <!-- 3 Keyword Hints -->
+            <div class="px-4 pb-4 pt-2 border-t border-slate-100 bg-slate-50/70">
+              <div class="text-[10px] font-heading font-semibold text-slate-400 uppercase mb-1.5">คำสำคัญช่วยจำ (Keyword Hints)</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${card.keywords.map(kw => `
+                  <span class="px-2 py-0.5 rounded-md text-xs bg-white border border-slate-200 text-slate-700 font-medium">${kw}</span>
+                `).join('')}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    /* ---------------------------------------------------------------------
+       7. TAB 3: LINK CARDS & ACTION CARDS
+       --------------------------------------------------------------------- */
+    function renderLinkAndActionCards() {
+      const linkGrid = document.getElementById('link-cards-grid');
+      linkGrid.innerHTML = LINK_CARDS.map(lc => `
+        <div onclick="openLinkCardModal('${lc.id}')" class="game-card bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm cursor-pointer flex flex-col justify-between">
+          <div>
+            <div class="bg-gradient-to-r ${lc.color} p-4 text-white flex items-center justify-between">
+              <span class="px-2.5 py-0.5 rounded-full bg-white/20 text-xs font-heading font-semibold">${lc.badge}</span>
+              <span class="text-2xl font-bold leading-none">${lc.symbol}</span>
+            </div>
+            <div class="p-5">
+              <div class="text-xs font-heading text-slate-400 uppercase mb-1">${lc.en}</div>
+              <h3 class="text-lg font-bold text-slate-900 mb-2">${lc.title}</h3>
+              <p class="text-sm text-slate-600 leading-relaxed">${lc.description}</p>
+            </div>
+          </div>
+          <div class="px-5 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-xs font-heading font-medium text-indigo-600">
+            <span>คลิกดูตัวอย่างประโยคทางวิทยาศาสตร์</span>
+            <span>➔</span>
+          </div>
+        </div>
+      `).join('');
+
+      const actionGrid = document.getElementById('action-cards-grid');
+      actionGrid.innerHTML = ACTION_CARDS.map(ac => `
+        <div onclick="openActionCardModal('${ac.id}')" class="game-card rounded-2xl border-2 ${ac.accent} p-5 shadow-sm cursor-pointer flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-3">
+              <span class="px-2.5 py-1 rounded-lg text-[11px] font-heading font-bold uppercase ${ac.pill}">Action Card</span>
+              <div class="text-slate-700">${ac.icon}</div>
+            </div>
+            <h3 class="text-base font-bold text-slate-900 mb-0.5">${ac.title}</h3>
+            <div class="text-xs font-heading text-slate-500 mb-3">${ac.en}</div>
+            <p class="text-xs sm:text-sm text-slate-700 leading-relaxed">${ac.effect}</p>
+          </div>
+          <div class="mt-4 pt-3 border-t border-slate-200/70 text-xs font-heading font-semibold text-slate-700 flex items-center justify-between">
+            <span>ดูกลยุทธ์การใช้งาน</span>
+            <span>+</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    /* ---------------------------------------------------------------------
+       8. MODALS SYSTEM (Details, Placement, Link Creation, Custom Card)
+       --------------------------------------------------------------------- */
+    function openModal(htmlContent) {
+      const backdrop = document.getElementById('modal-backdrop');
+      const box = document.getElementById('modal-box');
+      box.innerHTML = htmlContent;
+      backdrop.classList.remove('hidden');
+      backdrop.classList.add('flex');
+    }
+
+    function closeModal() {
+      const backdrop = document.getElementById('modal-backdrop');
+      backdrop.classList.add('hidden');
+      backdrop.classList.remove('flex');
+    }
+
+    function closeModalOnBackdrop(e) {
+      if (e.target.id === 'modal-backdrop') {
+        closeModal();
+      }
+    }
+
+    // Modal A: Concept Card Detail
+    function openConceptDetailModal(cardId) {
+      const card = getConceptById(cardId);
+      const meta = CATEGORY_META[card.category];
+
+      openModal(`
+        <div class="bg-gradient-to-r ${meta.headerGrad} p-5 text-white flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="w-11 h-11 rounded-xl bg-white/20 p-2">
+              ${ICONS[card.icon] || ICONS.custom}
+            </div>
+            <div>
+              <span class="text-xs font-heading opacity-90 block">${meta.label}</span>
+              <h3 class="text-lg font-bold">${card.title}</h3>
+            </div>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <div class="text-xs font-heading font-bold text-slate-400 uppercase mb-1.5">คำสำคัญช่วยจำ (Keyword Hints)</div>
+            <div class="flex flex-wrap gap-1.5">
+              ${card.keywords.map(kw => `<span class="px-3 py-1 rounded-lg text-xs font-medium ${meta.bgLight} ${meta.textDark} border ${meta.border}">${kw}</span>`).join('')}
+            </div>
+          </div>
+          <div>
+            <div class="text-xs font-heading font-bold text-slate-400 uppercase mb-1">คำอธิบายเชิงลึกทางวิทยาศาสตร์</div>
+            <p class="text-sm text-slate-700 leading-relaxed">${card.detail || 'มโนทัศน์สำคัญในบทเรียนวิทยาศาสตร์ ระดับมัธยมศึกษาตอนต้น'}</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200">
+            <div class="text-xs font-heading font-bold text-indigo-700 mb-1">💡 แนวทางการอธิบายเหตุผลในเกม</div>
+            <p class="text-xs sm:text-sm text-slate-600 leading-relaxed">${card.reasoningTip || 'เชื่อมโยงความสัมพันธ์เชิงเหตุและผลหรือการถ่ายทอดพลังงานกับมโนทัศน์ข้างเคียง'}</p>
+          </div>
+          ${card.recommendedPairs && card.recommendedPairs.length ? `
+            <div>
+              <div class="text-xs font-heading font-bold text-slate-400 uppercase mb-1.5">คู่การ์ดที่แนะนำให้เชื่อมโยง</div>
+              <div class="flex flex-wrap gap-1.5">
+                ${card.recommendedPairs.map(p => `<span class="px-2.5 py-1 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 text-xs font-heading font-medium">🔗 ${p}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+          <div class="pt-2 flex justify-end">
+            <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-900 text-white font-heading text-sm font-medium hover:bg-slate-800">ปิดหน้าต่าง</button>
+          </div>
+        </div>
+      `);
+    }
+
+    // Modal B: Create Custom Concept Card
+    function openCreateCardModal() {
+      openModal(`
+        <div class="bg-indigo-600 p-5 text-white flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-bold">+ สร้างการ์ดมโนทัศน์เพิ่มเอง</h3>
+            <p class="text-xs text-indigo-100">การ์ดที่สร้างจะเพิ่มเข้าคลัง กระดานจำลอง และหน้าพิมพ์ A4 ทันที</p>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white">✕</button>
+        </div>
+        <form onsubmit="handleCreateCustomCard(event)" class="p-6 space-y-4">
+          <div>
+            <label class="block text-xs font-heading font-bold text-slate-700 mb-1">ชื่อมโนทัศน์บนการ์ด *</label>
+            <input type="text" id="custom-card-title" required placeholder="เช่น แรงโน้มถ่วง, การสังเคราะห์ด้วยแสง, พอลิเมอร์" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-heading font-bold text-slate-700 mb-1">หมวดสาระการเรียนรู้ (สีการ์ด) *</label>
+            <select id="custom-card-cat" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <option value="biology">ชีววิทยา (สีเขียว)</option>
+              <option value="chemistry">เคมี (สีฟ้า)</option>
+              <option value="physics">ฟิสิกส์ (สีส้ม)</option>
+              <option value="earth">โลกและอวกาศ (สีม่วง)</option>
+              <option value="core">จุดศูนย์กลาง (สีทอง)</option>
+            </select>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+            <div>
+              <label class="block text-xs font-heading font-bold text-slate-700 mb-1">คำสำคัญที่ 1 *</label>
+              <input type="text" id="custom-kw-1" required placeholder="เช่น คลอโรพลาสต์" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-heading font-bold text-slate-700 mb-1">คำสำคัญที่ 2 *</label>
+              <input type="text" id="custom-kw-2" required placeholder="เช่น พลังงานแสง" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+            <div>
+              <label class="block text-xs font-heading font-bold text-slate-700 mb-1">คำสำคัญที่ 3</label>
+              <input type="text" id="custom-kw-3" placeholder="เช่น น้ำตาลกลูโคส" class="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+            </div>
+          </div>
+          <div>
+            <label class="block text-xs font-heading font-bold text-slate-700 mb-1">คำอธิบายเพิ่มเติม (ไม่บังคับ)</label>
+            <textarea id="custom-card-detail" rows="2" placeholder="ระบุหลักการสั้นๆ สำหรับแสดงเมื่อคลิกดูรายละเอียดการ์ด" class="w-full px-3.5 py-2 rounded-xl border border-slate-300 text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          </div>
+          <div class="pt-2 flex items-center justify-end gap-2">
+            <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-heading text-sm font-medium hover:bg-slate-200">ยกเลิก</button>
+            <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-heading text-sm font-semibold hover:bg-indigo-700 shadow-sm">บันทึกการ์ดใหม่</button>
+          </div>
+        </form>
+      `);
+    }
+
+    function handleCreateCustomCard(e) {
+      e.preventDefault();
+      const title = document.getElementById('custom-card-title').value.trim();
+      const category = document.getElementById('custom-card-cat').value;
+      const kw1 = document.getElementById('custom-kw-1').value.trim();
+      const kw2 = document.getElementById('custom-kw-2').value.trim();
+      const kw3 = document.getElementById('custom-kw-3').value.trim();
+      const detail = document.getElementById('custom-card-detail').value.trim();
+
+      const keywords = [kw1, kw2, kw3].filter(Boolean);
+      const newCard = {
+        id: 'custom_' + Date.now(),
+        title,
+        category,
+        icon: 'custom',
+        keywords,
+        detail: detail || `มโนทัศน์ "${title}" ที่สร้างเพิ่มเติมโดยผู้สอนสำหรับเชื่อมโยงองค์ความรู้ในชั้นเรียน`,
+        reasoningTip: 'อธิบายความสัมพันธ์เชิงเหตุและผล หรือบทบาทของมโนทัศน์นี้ร่วมกับการ์ดข้างเคียงบนกระดาน',
+        recommendedPairs: ['ดวงอาทิตย์ (The Sun)']
+      };
+
+      conceptCards.push(newCard);
+      closeModal();
+      renderConceptCardsGrid();
+      renderBoardSideDeck();
+      showToast(`สร้างการ์ด "${title}" สำเร็จ และอัปเดตในหน้าพิมพ์ A4 แล้ว!`, 'success');
+    }
+
+    // Modal C: Select a Card to Place on Clicked Empty Hex
+    function openSelectCardForHexModal(cell) {
+      const placedIds = new Set(Object.values(state.boardPlacements));
+      const available = conceptCards.filter(c => !placedIds.has(c.id));
+
+      openModal(`
+        <div class="bg-slate-900 p-5 text-white flex items-center justify-between">
+          <div>
+            <h3 class="text-base sm:text-lg font-bold">เลือกการ์ดมโนทัศน์ลงบนกระดาน</h3>
+            <p class="text-xs text-slate-300">${cell.bonus ? '✨ ช่องนี้เป็น "ช่องโบนัส x2 คะแนน" เมื่อสร้างเส้นเชื่อมโยงสำเร็จ!' : 'เลือก 1 การ์ดด้านล่างเพื่อวางลงในช่องนี้'}</p>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white">✕</button>
+        </div>
+        <div class="p-4 max-h-96 overflow-y-auto space-y-2">
+          ${available.length === 0 ? '<p class="text-sm text-slate-500 text-center py-6">วางการ์ดครบทุกใบแล้ว!</p>' : available.map(card => {
+            const meta = CATEGORY_META[card.category];
+            return `
+              <button onclick="placeCardOnHex('${cell.id}', '${card.id}'); closeModal();" class="w-full text-left p-3 rounded-xl border border-slate-200 hover:border-indigo-400 hover:bg-indigo-50/50 transition-all flex items-center justify-between gap-3">
+                <div class="flex items-center gap-3 min-w-0">
+                  <div class="w-9 h-9 rounded-xl ${meta.bgLight} ${meta.textDark} p-2 shrink-0 border ${meta.border}">
+                    ${ICONS[card.icon] || ICONS.custom}
+                  </div>
+                  <div class="min-w-0">
+                    <div class="text-sm font-heading font-bold text-slate-900 truncate">${card.title}</div>
+                    <div class="text-xs text-slate-500 truncate">${card.keywords.join(' • ')}</div>
+                  </div>
+                </div>
+                <span class="px-2.5 py-1 rounded-lg text-[11px] font-heading font-semibold border ${meta.badgeBg} shrink-0">${meta.shortLabel}</span>
+              </button>
+            `;
+          }).join('')}
+        </div>
+      `);
+    }
+
+    // Modal D: Inspect or Remove Placed Hex Card
+    function openPlacedHexModal(cell, card) {
+      const meta = CATEGORY_META[card.category];
+      openModal(`
+        <div class="bg-gradient-to-r ${meta.headerGrad} p-5 text-white flex items-center justify-between">
+          <div>
+            <span class="text-xs font-heading opacity-90 block">${meta.label} ${cell.bonus ? '• ช่องโบนัส x2' : ''}</span>
+            <h3 class="text-lg font-bold">${card.title}</h3>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <p class="text-sm text-slate-700 leading-relaxed">${card.detail}</p>
+          <div class="flex flex-wrap gap-1.5">
+            ${card.keywords.map(kw => `<span class="px-2.5 py-1 rounded-lg text-xs bg-slate-100 text-slate-700 font-medium">${kw}</span>`).join('')}
+          </div>
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            ${cell.id !== '0,0' ? `
+              <button onclick="removeCardFromHex('${cell.id}')" class="px-4 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-heading text-xs sm:text-sm font-semibold">นำการ์ดนี้ออกจากกระดาน</button>
+            ` : '<span class="text-xs text-slate-400">การ์ดจุดศูนย์กลางประจำกระดาน</span>'}
+            <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-900 text-white font-heading text-xs sm:text-sm font-medium">ตกลง</button>
+          </div>
+        </div>
+      `);
+    }
+
+    // Modal E: Create Link Connection between 2 Adjacent Hexes
+    function openCreateLinkModal(cellIdA, cellIdB) {
+      const cellA = HEX_COORDS.find(c => c.id === cellIdA);
+      const cellB = HEX_COORDS.find(c => c.id === cellIdB);
+      const cardA = getConceptById(state.boardPlacements[cellIdA]);
+      const cardB = getConceptById(state.boardPlacements[cellIdB]);
+
+      const hasBonus = cellA.bonus || cellB.bonus;
+      const calcPoints = hasBonus ? 4 : 2;
+
+      openModal(`
+        <div class="bg-indigo-600 p-5 text-white flex items-center justify-between">
+          <div>
+            <h3 class="text-lg font-bold">สร้างจุดเชื่อมโยงความรู้ (Link Cards)</h3>
+            <p class="text-xs text-indigo-100">เลือกการ์ดเชื่อมโยงและอธิบายเหตุผลทางวิทยาศาสตร์ (${hasBonus ? 'เชื่อมช่องโบนัส รับ 4 คะแนน!' : 'รับ 2 คะแนน'})</p>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white">✕</button>
+        </div>
+        <form onsubmit="handleConfirmLink(event, '${cellIdA}', '${cellIdB}', ${calcPoints})" class="p-5 space-y-4">
+          <!-- Connected Cards Visual Pill -->
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between gap-2 text-center">
+            <div class="flex-1 font-heading font-bold text-xs sm:text-sm text-slate-900 bg-white p-2 rounded-lg border border-slate-200">${cardA.title}</div>
+            <div class="text-indigo-600 font-bold text-lg">🔗</div>
+            <div class="flex-1 font-heading font-bold text-xs sm:text-sm text-slate-900 bg-white p-2 rounded-lg border border-slate-200">${cardB.title}</div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-heading font-bold text-slate-700 mb-1.5">1. เลือกการ์ดเชื่อมโยง (Link Card) *</label>
+            <select id="select-link-card" onchange="autoFillLinkReason('${cardA.title}', '${cardB.title}')" class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-medium focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              ${LINK_CARDS.map(lc => `<option value="${lc.id}">${lc.title} (${lc.badge})</option>`).join('')}
+            </select>
+          </div>
+
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-heading font-bold text-slate-700">2. คำอธิบายเหตุผลทางวิทยาศาสตร์ *</label>
+              <button type="button" onclick="autoFillLinkReason('${cardA.title}', '${cardB.title}')" class="text-[11px] font-heading text-indigo-600 hover:underline">เติมตัวอย่างประโยคอัตโนมัติ</button>
+            </div>
+            <textarea id="input-link-reason" rows="3" required class="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs sm:text-sm leading-relaxed focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+          </div>
+
+          <div class="flex items-center justify-between pt-2">
+            <span class="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-heading font-bold">
+              คะแนนที่จะได้รับ: +${calcPoints} คะแนน ${hasBonus ? '(โบนัส x2)' : ''}
+            </span>
+            <div class="flex gap-2">
+              <button type="button" onclick="closeModal()" class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-heading text-sm font-medium">ยกเลิก</button>
+              <button type="submit" class="px-5 py-2 rounded-xl bg-indigo-600 text-white font-heading text-sm font-semibold hover:bg-indigo-700 shadow-sm">ยืนยันการเชื่อมโยง</button>
+            </div>
+          </div>
+        </form>
+      `);
+
+      // Populate initial template sentence
+      autoFillLinkReason(cardA.title, cardB.title);
+    }
+
+    function autoFillLinkReason(titleA, titleB) {
+      const sel = document.getElementById('select-link-card');
+      const textarea = document.getElementById('input-link-reason');
+      if (!sel || !textarea) return;
+      const lc = getLinkById(sel.value);
+      textarea.value = `${titleA} [${lc.title}] ${titleB} เพราะในระบบธรรมชาติมีความสัมพันธ์เชิงกระบวนการและพลังงานที่ส่งผลต่อกันโดยตรง`;
+    }
+
+    function handleConfirmLink(e, cellIdA, cellIdB, points) {
+      e.preventDefault();
+      const linkCardId = document.getElementById('select-link-card').value;
+      const reason = document.getElementById('input-link-reason').value.trim();
+
+      state.boardLinks.push({
+        id: makePairKey(cellIdA, cellIdB),
+        cellA: cellIdA,
+        cellB: cellIdB,
+        linkCardId,
+        reason,
+        points
+      });
+
+      closeModal();
+      showToast(`สร้างจุดเชื่อมโยงสำเร็จ! รับ +${points} คะแนน`, 'success');
+      renderHexBoard();
+    }
+
+    function openLinkDetailOrEditModal(linkObj) {
+      const cardA = getConceptById(state.boardPlacements[linkObj.cellA]);
+      const cardB = getConceptById(state.boardPlacements[linkObj.cellB]);
+      const lc = getLinkById(linkObj.linkCardId);
+
+      openModal(`
+        <div class="bg-indigo-600 p-5 text-white flex items-center justify-between">
+          <div>
+            <span class="text-xs font-heading opacity-90 block">จุดเชื่อมโยงที่ยืนยันแล้ว (+${linkObj.points} คะแนน)</span>
+            <h3 class="text-lg font-bold">${lc.title}</h3>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white">✕</button>
+        </div>
+        <div class="p-5 space-y-4">
+          <div class="flex flex-wrap items-center gap-2 text-xs font-heading font-bold">
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800">${cardA.title}</span>
+            <span class="text-indigo-600">➔ ${lc.title} ➔</span>
+            <span class="px-2.5 py-1 rounded-lg bg-slate-100 text-slate-800">${cardB.title}</span>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-700 leading-relaxed">
+            "${linkObj.reason}"
+          </div>
+          <div class="flex items-center justify-between pt-2">
+            <button onclick="deleteBoardLink('${linkObj.id}'); closeModal();" class="px-4 py-2 rounded-xl bg-rose-50 text-rose-700 hover:bg-rose-100 font-heading text-xs sm:text-sm font-semibold">ลบเส้นเชื่อมโยง</button>
+            <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-900 text-white font-heading text-xs sm:text-sm font-medium">ปิด</button>
+          </div>
+        </div>
+      `);
+    }
+
+    // Modal F: Link Card Example Modal (Tab 3)
+    function openLinkCardModal(linkId) {
+      const lc = getLinkById(linkId);
+      openModal(`
+        <div class="bg-gradient-to-r ${lc.color} p-5 text-white flex items-center justify-between">
+          <div>
+            <span class="text-xs font-heading opacity-90 block">${lc.badge} • ${lc.en}</span>
+            <h3 class="text-lg font-bold">${lc.title}</h3>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/20 hover:bg-white/30 text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-4">
+          <p class="text-sm text-slate-700 leading-relaxed">${lc.description}</p>
+          <div class="p-4 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-2">
+            <div class="text-xs font-heading font-bold text-indigo-800 uppercase">ตัวอย่างการใช้เชื่อมโยงในเกม</div>
+            <div class="flex flex-wrap items-center gap-1.5 text-xs font-heading font-bold">
+              <span class="px-2.5 py-1 rounded bg-white border border-indigo-200 text-slate-800">${lc.exampleFrom}</span>
+              <span class="px-2.5 py-1 rounded bg-indigo-600 text-white">${lc.title}</span>
+              <span class="px-2.5 py-1 rounded bg-white border border-indigo-200 text-slate-800">${lc.exampleTo}</span>
+            </div>
+            <p class="text-xs sm:text-sm text-slate-700 italic leading-relaxed pt-1">"${lc.exampleReason}"</p>
+          </div>
+          <div class="flex justify-end">
+            <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-900 text-white font-heading text-sm font-medium">เข้าใจแล้ว</button>
+          </div>
+        </div>
+      `);
+    }
+
+    // Modal G: Action Card Detail Modal (Tab 3)
+    function openActionCardModal(actionId) {
+      const ac = ACTION_CARDS.find(a => a.id === actionId);
+      openModal(`
+        <div class="bg-slate-900 p-5 text-white flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-xl bg-white/10">${ac.icon}</div>
+            <div>
+              <span class="text-xs font-heading text-slate-300 block">Action Card • ${ac.en}</span>
+              <h3 class="text-lg font-bold">${ac.title}</h3>
+            </div>
+          </div>
+          <button onclick="closeModal()" class="p-1.5 rounded-lg bg-white/15 hover:bg-white/25 text-white">✕</button>
+        </div>
+        <div class="p-6 space-y-4">
+          <div>
+            <div class="text-xs font-heading font-bold text-slate-400 uppercase mb-1">ความสามารถพิเศษของการ์ด</div>
+            <p class="text-sm text-slate-800 leading-relaxed">${ac.effect}</p>
+          </div>
+          <div class="p-3.5 rounded-xl bg-amber-50 border border-amber-200">
+            <div class="text-xs font-heading font-bold text-amber-800 mb-1">🎯 กลยุทธ์และการจัดการเรียนรู้</div>
+            <p class="text-xs sm:text-sm text-amber-900 leading-relaxed">${ac.tip}</p>
+          </div>
+          <div class="flex justify-end">
+            <button onclick="closeModal()" class="px-5 py-2 rounded-xl bg-slate-900 text-white font-heading text-sm font-medium">ปิดหน้าต่าง</button>
+          </div>
+        </div>
+      `);
+    }
+
+    /* ---------------------------------------------------------------------
+       9. TAB 4: PRINT STUDIO A4 GENERATOR & INK-SAVER MODE
+       --------------------------------------------------------------------- */
+    function toggleInkSaverMode(enabled) {
+      state.inkSaver = enabled;
+      const container = document.getElementById('a4-pages-container');
+      if (enabled) {
+        container.classList.add('ink-saver');
+        showToast('เปิดโหมดประหยัดหมึก (Ink-Saver Mode) แล้ว', 'info');
+      } else {
+        container.classList.remove('ink-saver');
+        showToast('กลับสู่โหมดพิมพ์สีมาตรฐาน', 'info');
+      }
+    }
+
+    function chunkArray(arr, size) {
+      const chunks = [];
+      for (let i = 0; i < arr.length; i += size) {
+        chunks.push(arr.slice(i, i + size));
+      }
+      return chunks;
+    }
+
+    function renderPrintStudio() {
+      const container = document.getElementById('a4-pages-container');
+      if (state.inkSaver) {
+        container.classList.add('ink-saver');
+      } else {
+        container.classList.remove('ink-saver');
+      }
+
+      let pagesHtml = '';
+      let totalPages = 0;
+
+      // -------------------------------------------------------------------
+      // SHEET 1: FULL-PAGE A4 19-HEX BOARD
+      // -------------------------------------------------------------------
+      totalPages++;
+      pagesHtml += `
+        <div class="a4-sheet">
+          <!-- Sheet Header -->
+          <div class="flex items-center justify-between border-b-2 border-slate-800 pb-3">
+            <div>
+              <div class="text-xs font-heading font-bold text-indigo-700 uppercase tracking-wider">LINK-VERSE BOARD GAME • วิทยาศาสตร์ ม.ต้น</div>
+              <h2 class="text-2xl font-bold text-slate-900">กระดานรังผึ้งสมรภูมิเชื่อมโยงความรู้ (19 ช่อง)</h2>
+            </div>
+            <div class="text-right text-xs font-heading text-slate-600">
+              <div class="font-bold text-slate-900">แผ่นที่ 1 / กระดานหลัก</div>
+              <div>จัดเรียง 3-4-5-4-3 ช่อง</div>
+            </div>
+          </div>
+
+          <!-- Center Large Printable Hex SVG -->
+          <div class="my-auto flex flex-col items-center justify-center py-2">
+            ${buildPrintableHexBoardSVG()}
+          </div>
+
+          <!-- Bottom Group Score & Instructions Footer -->
+          <div class="border-t-2 border-slate-800 pt-3 grid grid-cols-3 gap-3 text-xs">
+            <div class="col-span-2 p-2.5 rounded-lg border border-slate-300 bg-slate-50 print-card-inner">
+              <div class="font-heading font-bold text-slate-900 mb-1">กติกาสรุปย่อบนกระดาน:</div>
+              <ul class="list-disc list-inside text-slate-700 space-y-0.5 text-[11px]">
+                <li>วางการ์ด <strong>ดวงอาทิตย์ (จุดศูนย์กลาง)</strong> ที่ช่องกลางกระดานก่อนเริ่มเกม</li>
+                <li>วางการ์ดเชื่อมโยงคั่นระหว่างการ์ดมโนทัศน์ 2 ใบที่ติดกัน และอธิบายเหตุผลให้กลุ่มยอมรับ (+2 คะแนน)</li>
+                <li>หากเชื่อมโยงติดกับ <strong>ช่องโบนัส x2</strong> รับคะแนนคูณสอง (+4 คะแนน)</li>
+              </ul>
+            </div>
+            <div class="p-2.5 rounded-lg border border-slate-300 flex flex-col justify-between">
+              <div class="font-heading font-bold text-slate-900">บันทึกกลุ่มที่: ...................</div>
+              <div class="text-slate-600">สมาชิก: ..............................</div>
+              <div class="font-heading font-bold text-slate-900">คะแนนรวม: ...................</div>
+            </div>
+          </div>
+        </div>
+      `;
+
+      // -------------------------------------------------------------------
+      // SHEETS 2-3 (+): CONCEPT CARDS IN 3x3 CUT-LINE GRID
+      // -------------------------------------------------------------------
+      const conceptChunks = chunkArray(conceptCards, 9);
+      conceptChunks.forEach((chunk, pageIdx) => {
+        totalPages++;
+        // Pad chunk to 9 slots for clean 3x3 grid
+        const slots = [...chunk];
+        while (slots.length < 9) slots.push(null);
+
+        pagesHtml += `
+          <div class="a4-sheet">
+            <div class="flex items-center justify-between border-b border-slate-300 pb-2 mb-2">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">ชุดการ์ดมโนทัศน์ (Concept Cards) — ชุดที่ ${pageIdx + 1}</h3>
+                <p class="text-[11px] text-slate-500">ตัดตามเส้นประ (Cut Lines) • ขนาดมาตรฐานบอร์ดเกม 3×3 ใบต่อแผ่น</p>
+              </div>
+              <span class="text-xs font-heading font-semibold text-slate-600">แผ่นที่ ${totalPages}</span>
+            </div>
+
+            <div class="print-card-grid my-auto">
+              ${slots.map(card => {
+                if (!card) {
+                  return `
+                    <div class="print-card-slot items-center justify-center text-slate-300 text-xs font-heading">
+                      <span>ช่องว่างสำรอง (เขียนเพิ่มได้)</span>
+                    </div>
+                  `;
+                }
+                const meta = CATEGORY_META[card.category];
+                return `
+                  <div class="print-card-slot">
+                    <div class="print-card-inner w-full h-full rounded-xl border-2 ${meta.border} ${meta.bgLight} flex flex-col justify-between overflow-hidden">
+                      <div class="print-card-header bg-gradient-to-r ${meta.headerGrad} px-2.5 py-1.5 text-white flex items-center justify-between">
+                        <span class="text-[10px] font-heading font-bold">${meta.shortLabel}</span>
+                        <span class="text-[8px] font-heading uppercase opacity-90">LINK-VERSE</span>
+                      </div>
+                      <div class="px-2.5 py-2 flex flex-col items-center text-center my-auto">
+                        <div class="w-11 h-11 rounded-xl bg-white ${meta.textDark} p-2 border ${meta.border} mb-1.5">
+                          ${ICONS[card.icon] || ICONS.custom}
+                        </div>
+                        <div class="text-xs font-heading font-bold text-slate-900 leading-tight">${card.title}</div>
+                      </div>
+                      <div class="px-2 pb-2 pt-1 bg-white/90 border-t border-slate-200">
+                        <div class="text-[8px] font-heading font-bold text-slate-400 uppercase mb-0.5">คำสำคัญช่วยจำ</div>
+                        <div class="flex flex-wrap gap-1">
+                          ${card.keywords.map(k => `<span class="print-badge px-1.5 py-0.5 rounded text-[8.5px] bg-slate-100 text-slate-800 font-medium">${k}</span>`).join('')}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+
+            <div class="text-[10px] text-slate-400 flex justify-between pt-2">
+              <span>✂ คำแนะนำ: พิมพ์ลงกระดาษอาร์ตการ์ด 210–250 แกรม หรือเคลือบพลาสติกใสเพื่อความทนทาน</span>
+              <span>LINK-VERSE Science Edition</span>
+            </div>
+          </div>
+        `;
+      });
+
+      // -------------------------------------------------------------------
+      // SHEET 4: LINK CARDS (6) + ACTION CARDS (3) IN 3x3 GRID
+      // -------------------------------------------------------------------
+      const combinedSpecialCards = [
+        ...LINK_CARDS.map(l => ({ type: 'link', data: l })),
+        ...ACTION_CARDS.map(a => ({ type: 'action', data: a }))
+      ];
+      const specialChunks = chunkArray(combinedSpecialCards, 9);
+
+      specialChunks.forEach((chunk, idx) => {
+        totalPages++;
+        const slots = [...chunk];
+        while (slots.length < 9) slots.push(null);
+
+        pagesHtml += `
+          <div class="a4-sheet">
+            <div class="flex items-center justify-between border-b border-slate-300 pb-2 mb-2">
+              <div>
+                <h3 class="text-base font-bold text-slate-900">ชุดการ์ดเชื่อมโยง & การ์ดแอ็กชัน (Link & Action Cards) ${specialChunks.length > 1 ? `(${idx + 1})` : ''}</h3>
+                <p class="text-[11px] text-slate-500">ตัดตามเส้นประ • ใช้วางคั่นระหว่างการ์ดมโนทัศน์และพลิกกลยุทธ์ในเกม</p>
+              </div>
+              <span class="text-xs font-heading font-semibold text-slate-600">แผ่นที่ ${totalPages}</span>
+            </div>
+
+            <div class="print-card-grid my-auto">
+              ${slots.map(item => {
+                if (!item) {
+                  return `<div class="print-card-slot items-center justify-center text-slate-300 text-xs font-heading">LINK-VERSE</div>`;
+                }
+                if (item.type === 'link') {
+                  const lc = item.data;
+                  return `
+                    <div class="print-card-slot">
+                      <div class="print-card-inner w-full h-full rounded-xl border-2 border-indigo-400 bg-indigo-50/40 flex flex-col justify-between overflow-hidden">
+                        <div class="print-card-header bg-gradient-to-r ${lc.color} px-2.5 py-1.5 text-white flex items-center justify-between">
+                          <span class="text-[9.5px] font-heading font-bold">การ์ดเชื่อมโยง</span>
+                          <span class="text-xs font-bold">${lc.symbol}</span>
+                        </div>
+                        <div class="p-2.5 text-center my-auto">
+                          <span class="print-badge inline-block px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[8.5px] font-heading font-semibold mb-1">${lc.badge}</span>
+                          <div class="text-xs font-heading font-bold text-slate-900 leading-snug mb-1.5">${lc.title}</div>
+                          <p class="text-[9px] text-slate-600 leading-normal">${lc.description}</p>
+                        </div>
+                        <div class="px-2.5 py-1 bg-white border-t border-slate-200 text-[8px] text-center font-heading text-slate-500">
+                          วางคั่นระหว่างมโนทัศน์ + อธิบายเหตุผล
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                } else {
+                  const ac = item.data;
+                  return `
+                    <div class="print-card-slot">
+                      <div class="print-card-inner w-full h-full rounded-xl border-2 border-rose-400 bg-rose-50/40 flex flex-col justify-between overflow-hidden">
+                        <div class="print-card-header bg-slate-900 px-2.5 py-1.5 text-white flex items-center justify-between">
+                          <span class="text-[9.5px] font-heading font-bold text-amber-300">⚡ ACTION CARD</span>
+                          <span class="text-[8px] font-heading uppercase">${ac.en}</span>
+                        </div>
+                        <div class="p-2.5 text-center my-auto">
+                          <div class="text-xs font-heading font-bold text-slate-900 mb-1">${ac.title}</div>
+                          <p class="text-[8.8px] text-slate-700 leading-snug">${ac.effect}</p>
+                        </div>
+                        <div class="px-2.5 py-1 bg-white border-t border-slate-200 text-[8px] text-center font-heading text-rose-700 font-semibold">
+                          ใช้ได้ 1 ครั้งต่อใบเมื่อถึงเทิร์น
+                        </div>
+                      </div>
+                    </div>
+                  `;
+                }
+              }).join('')}
+            </div>
+
+            <div class="text-[10px] text-slate-400 flex justify-between pt-2">
+              <span>✂ ตัดตามเส้นประ • สามารถพิมพ์ซ้ำชุดการ์ดเชื่อมโยงได้ตามจำนวนผู้เล่น (แนะนำ 30 ใบ/ชุด)</span>
+              <span>LINK-VERSE Science Edition</span>
+            </div>
+          </div>
+        `;
+      });
+
+      // -------------------------------------------------------------------
+      // SHEET 5: CARD BACKS (หลังการ์ดมาตรฐาน 3x3 สำหรับพิมพ์ประกบหน้า-หลัง)
+      // -------------------------------------------------------------------
+      totalPages++;
+      const cardBackTypes = [
+        { label: 'CONCEPT CARD', sub: 'การ์ดมโนทัศน์', bg: 'from-emerald-600 to-teal-700' },
+        { label: 'CONCEPT CARD', sub: 'การ์ดมโนทัศน์', bg: 'from-sky-600 to-blue-700' },
+        { label: 'CONCEPT CARD', sub: 'การ์ดมโนทัศน์', bg: 'from-orange-500 to-amber-600' },
+        { label: 'CONCEPT CARD', sub: 'การ์ดมโนทัศน์', bg: 'from-purple-600 to-indigo-700' },
+        { label: 'CORE CONCEPT', sub: 'จุดศูนย์กลาง', bg: 'from-amber-500 to-yellow-600' },
+        { label: 'LINK CARD', sub: 'การ์ดเชื่อมโยง', bg: 'from-indigo-600 to-blue-800' },
+        { label: 'LINK CARD', sub: 'การ์ดเชื่อมโยง', bg: 'from-indigo-600 to-blue-800' },
+        { label: 'ACTION CARD', sub: 'การ์ดแอ็กชันพิเศษ', bg: 'from-rose-600 to-slate-900' },
+        { label: 'ACTION CARD', sub: 'การ์ดแอ็กชันพิเศษ', bg: 'from-rose-600 to-slate-900' }
+      ];
+
+      pagesHtml += `
+        <div class="a4-sheet">
+          <div class="flex items-center justify-between border-b border-slate-300 pb-2 mb-2">
+            <div>
+              <h3 class="text-base font-bold text-slate-900">ชุดหลังการ์ดมาตรฐาน (Card Backs) — พิมพ์ประกบหน้า-หลัง</h3>
+              <p class="text-[11px] text-slate-500">จัดวางตำแหน่งตรงกับตาราง 3×3 ด้านหน้าเพื่อการพิมพ์สองหน้า (Duplex Printing)</p>
+            </div>
+            <span class="text-xs font-heading font-semibold text-slate-600">แผ่นที่ ${totalPages}</span>
+          </div>
+
+          <div class="print-card-grid my-auto">
+            ${cardBackTypes.map(cb => `
+              <div class="print-card-slot">
+                <div class="print-card-back w-full h-full rounded-xl bg-gradient-to-br ${cb.bg} text-white p-3 flex flex-col items-center justify-center text-center border-2 border-slate-300 relative">
+                  <div class="w-12 h-12 rounded-2xl border-2 border-current/40 flex items-center justify-center mb-2">
+                    <svg class="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <polygon points="12 2 21 7 21 17 12 22 3 17 3 7 12 2"></polygon>
+                      <circle cx="12" cy="12" r="3" fill="currentColor"></circle>
+                    </svg>
+                  </div>
+                  <div class="text-sm font-heading font-bold tracking-wider">LINK-VERSE</div>
+                  <div class="text-[9px] font-heading uppercase tracking-widest opacity-85 mt-0.5">${cb.label}</div>
+                  <div class="mt-2 px-2.5 py-0.5 rounded-full border border-current/30 text-[9px] font-heading">${cb.sub}</div>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+
+          <div class="text-[10px] text-slate-400 flex justify-between pt-2">
+            <span>🖨️ ตั้งค่าเครื่องพิมพ์เป็นขนาดจริง 100% (Actual Size / No Scaling) เพื่อให้ขอบการ์ดตรงกัน</span>
+            <span>LINK-VERSE Science Edition</span>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = pagesHtml;
+      document.getElementById('print-page-count-badge').textContent = `${totalPages} แผ่น A4`;
+    }
+
+    function buildPrintableHexBoardSVG() {
+      const size = 66;
+      const cx = 330;
+      const cy = 300;
+      let svgInner = '';
+
+      HEX_COORDS.forEach(cell => {
+        const { x, y } = axialToPixel(cell.q, cell.r, size, cx, cy);
+        const pts = getHexPolygonPoints(x, y, size - 2);
+
+        let fill = '#ffffff';
+        let stroke = '#334155';
+        let strokeWidth = '2';
+
+        if (cell.isCore) {
+          fill = '#fef3c7';
+          stroke = '#d97706';
+          strokeWidth = '3';
+        } else if (cell.bonus) {
+          fill = '#ffe4e6';
+          stroke = '#e11d48';
+          strokeWidth = '2.5';
+        }
+
+        svgInner += `<polygon points="${pts}" fill="${fill}" stroke="${stroke}" stroke-width="${strokeWidth}" class="print-card-inner" />`;
+
+        if (cell.isCore) {
+          svgInner += `
+            <text x="${x}" y="${y - 10}" text-anchor="middle" fill="#b45309" font-size="10" font-weight="700" font-family="Prompt, sans-serif">★ จุดศูนย์กลาง ★</text>
+            <text x="${x}" y="${y + 8}" text-anchor="middle" fill="#0f172a" font-size="12" font-weight="700" font-family="Prompt, sans-serif">CORE CONCEPT</text>
+            <text x="${x}" y="${y + 23}" text-anchor="middle" fill="#475569" font-size="9.5" font-family="Sarabun, sans-serif">(วางการ์ดดวงอาทิตย์)</text>
+          `;
+        } else if (cell.bonus) {
+          svgInner += `
+            <text x="${x}" y="${y - 4}" text-anchor="middle" fill="#be123c" font-size="11.5" font-weight="700" font-family="Prompt, sans-serif">โบนัส x2</text>
+            <text x="${x}" y="${y + 12}" text-anchor="middle" fill="#881337" font-size="9.5" font-family="Sarabun, sans-serif">คะแนนคูณสอง</text>
+          `;
+        } else {
+          svgInner += `
+            <circle cx="${x}" cy="${y}" r="3" fill="#cbd5e1" />
+          `;
+        }
+      });
+
+      return `
+        <svg viewBox="0 0 660 600" class="w-full max-w-[175mm] h-auto">
+          ${svgInner}
+        </svg>
+      `;
+    }
+
+    /* ---------------------------------------------------------------------
+       10. INITIALIZATION ON WINDOW LOAD
+       --------------------------------------------------------------------- */
+    window.onload = function () {
+      renderHexBoard();
+      renderConceptCardsGrid();
+      renderLinkAndActionCards();
+      renderPrintStudio();
+    };
+  </script>
+</body>
+</html>
